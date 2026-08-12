@@ -1,0 +1,23 @@
+# Backend (Maven/Java)
+civicaudit-backend/target/
+civicaudit-backend/.idea/
+civicaudit-backend/*.iml
+civicaudit-backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend (Angular/Node)
+civicaudit-frontend/node_modules/
+civicaudit-frontend/dist/
+civicaudit-frontend/.angular/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Données sensibles - NE JAMAIS versionner
+civicaudit-backend/src/main/resources/application-local.properties
+*.env
