@@ -1,0 +1,94 @@
+<div class="page">
+  <div *ngIf="chargement" class="etat-info">Chargement des statistiques...</div>
+  
+  <div *ngIf="erreur" class="etat-erreur">
+    Impossible de charger les statistiques.
+    <a routerLink="/marches">Retour à la liste des marchés</a>
+  </div>
+
+  <div *ngIf="stats && !chargement">
+    <!-- En-tête -->
+    <div class="stats-header">
+      <p class="eyebrow">Six-Fours-les-Plages · Statistiques</p>
+      <h1>Vue d'ensemble des marchés publics</h1>
+      <p class="subtitle">Analyse des dépenses publiques sur la période couverte par les données</p>
+    </div>
+
+    <!-- Indicateurs clés -->
+    <div class="indicateurs-grid">
+      <div class="indicateur-card">
+        <div class="indicateur-icone">💰</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Montant total des dépenses</p>
+          <p class="indicateur-valeur">{{ formatMontant(stats.montantTotal) }}</p>
+        </div>
+      </div>
+
+      <div class="indicateur-card">
+        <div class="indicateur-icone">📊</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Nombre de marchés</p>
+          <p class="indicateur-valeur">{{ stats.nombreMarches }}</p>
+        </div>
+      </div>
+
+      <div class="indicateur-card">
+        <div class="indicateur-icone">🏢</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Fournisseurs uniques</p>
+          <p class="indicateur-valeur">{{ stats.nombreFournisseurs }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="graphiques-grid">
+      <!-- Montant par année -->
+      <div class="graphique-card">
+        <h2>📅 Évolution des dépenses par année</h2>
+        <div class="graphique-container">
+          <canvas id="chartMontantAnnee"></canvas>
+        </div>
+      </div>
+
+      <!-- Top 10 fournisseurs -->
+      <div class="graphique-card">
+        <h2>🏆 Top 10 des fournisseurs</h2>
+        <p class="graphique-description">Classés par montant cumulé</p>
+        <div class="graphique-container graphique-horizontal">
+          <canvas id="chartTopFournisseurs"></canvas>
+        </div>
+      </div>
+
+      <!-- Répartition par procédure -->
+      <div class="graphique-card">
+        <h2>⚖️ Répartition par type de procédure</h2>
+        <div class="graphique-container">
+          <canvas id="chartProcedures"></canvas>
+        </div>
+      </div>
+
+      <!-- Répartition par catégorie CPV -->
+      <div class="graphique-card">
+        <h2>📦 Répartition par catégorie</h2>
+        <p class="graphique-description">Grandes catégories CPV</p>
+        <div class="graphique-container">
+          <canvas id="chartCpv"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Note explicative -->
+    <div class="note-methodologie">
+      <h3>📖 À propos de ces statistiques</h3>
+      <p>
+        Ces données proviennent des Données Essentielles de la Commande Publique (DECP) 
+        publiées en open data par la commune. Elles couvrent l'ensemble des marchés publics 
+        attribués depuis 2018, conformément à la réglementation en vigueur.
+      </p>
+      <p>
+        <a routerLink="/marches">→ Consulter la liste complète des marchés</a>
+      </p>
+    </div>
+  </div>
+</div>

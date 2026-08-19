@@ -1,0 +1,96 @@
+<div class="page">
+  <div *ngIf="chargement" class="etat-info">Chargement du fournisseur...</div>
+  
+  <div *ngIf="erreur" class="etat-erreur">
+    Impossible de charger les informations du fournisseur.
+    <a routerLink="/marches">Retour à la liste des marchés</a>
+  </div>
+
+  <div *ngIf="fournisseur && !chargement">
+    <!-- En-tête -->
+    <div class="fournisseur-header">
+      <a routerLink="/marches" class="btn-retour">← Retour à la liste</a>
+      <p class="eyebrow">Fournisseur · Six-Fours-les-Plages</p>
+      <h1>{{ fournisseur.nom }}</h1>
+      <p class="siret">SIRET : {{ fournisseur.siret }}</p>
+    </div>
+
+    <!-- Indicateurs clés -->
+    <div class="indicateurs-grid">
+      <div class="indicateur-card">
+        <div class="indicateur-icone">📊</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Marchés remportés</p>
+          <p class="indicateur-valeur">{{ fournisseur.nombreMarches }}</p>
+        </div>
+      </div>
+
+      <div class="indicateur-card">
+        <div class="indicateur-icone">💰</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Montant total cumulé</p>
+          <p class="indicateur-valeur">{{ formatMontant(fournisseur.montantTotal) }}</p>
+        </div>
+      </div>
+
+      <div class="indicateur-card concentration" [ngClass]="getConcentrationClass(fournisseur.pourcentageConcentration)">
+        <div class="indicateur-icone">🎯</div>
+        <div class="indicateur-contenu">
+          <p class="indicateur-label">Part des dépenses totales</p>
+          <p class="indicateur-valeur">{{ fournisseur.pourcentageConcentration.toFixed(1) }}%</p>
+          <div class="barre-concentration">
+            <div 
+              class="barre-progression" 
+              [style.width.%]="fournisseur.pourcentageConcentration > 100 ? 100 : fournisseur.pourcentageConcentration">
+            </div>
+          </div>
+          <p class="concentration-explication">
+            {{ getConcentrationTexte(fournisseur.pourcentageConcentration) }}
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Liste des marchés -->
+    <div class="marches-section">
+      <h2>Marchés remportés</h2>
+      
+      <table class="table-marches" *ngIf="marches && marches.content.length > 0">
+        <thead>
+          <tr>
+            <th>Objet</th>
+            <th class="col-montant">Montant</th>
+            <th>Date</th>
+            <th>Procédure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr 
+            *ngFor="let marche of marches.content" 
+            [routerLink]="['/marches', marche.id]" 
+            class="ligne-marche">
+            <td class="col-objet">{{ marche.objet }}</td>
+            <td class="col-montant montant">{{ formatMontant(marche.montant) }}</td>
+            <td class="col-date">{{ formatDate(marche.dateNotification) }}</td>
+            <td><span class="badge-procedure">{{ marche.procedure }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="marches && marches.totalPages > 1">
+        <button 
+          (click)="changerPage(marches.number - 1)" 
+          [disabled]="marches.number === 0">
+          ← Précédent
+        </button>
+        <span>Page {{ marches.number + 1 }} sur {{ marches.totalPages }}</span>
+        <button 
+          (click)="changerPage(marches.number + 1)" 
+          [disabled]="marches.number >= marches.totalPages - 1">
+          Suivant →
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

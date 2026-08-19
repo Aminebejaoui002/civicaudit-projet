@@ -1,0 +1,84 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-header">
+      <h1>Créer un compte</h1>
+      <p>Rejoignez la communauté citoyenne pour participer à l'audit des marchés publics</p>
+    </div>
+
+    <div *ngIf="erreur" class="alerte-erreur">
+      {{ erreur }}
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          formControlName="email"
+          [class.invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+          placeholder="votre@email.fr"
+        />
+        <span class="error-message" *ngIf="getErrorMessage('email')">
+          {{ getErrorMessage('email') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          [class.invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+          placeholder="••••••••"
+        />
+        <span class="error-message" *ngIf="getErrorMessage('password')">
+          {{ getErrorMessage('password') }}
+        </span>
+        <p class="hint">Minimum 8 caractères avec au moins 1 chiffre</p>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Confirmer le mot de passe</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          [class.invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+          placeholder="••••••••"
+        />
+        <span class="error-message" *ngIf="getErrorMessage('confirmPassword')">
+          {{ getErrorMessage('confirmPassword') }}
+        </span>
+      </div>
+
+      <div class="form-group-checkbox">
+        <label>
+          <input type="checkbox" formControlName="acceptCgu" />
+          <span>
+            J'accepte que mes données personnelles soient utilisées conformément à la 
+            <a routerLink="/mentions-legales" target="_blank">politique de confidentialité</a>
+          </span>
+        </label>
+        <span class="error-message" *ngIf="registerForm.get('acceptCgu')?.touched && registerForm.get('acceptCgu')?.invalid">
+          Vous devez accepter les conditions
+        </span>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="chargement">
+        {{ chargement ? 'Création...' : 'Créer mon compte' }}
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>
+        Déjà un compte ? 
+        <a routerLink="/login">Se connecter</a>
+      </p>
+      <p>
+        <a routerLink="/marches">Continuer sans compte</a>
+      </p>
+    </div>
+  </div>
+</div>

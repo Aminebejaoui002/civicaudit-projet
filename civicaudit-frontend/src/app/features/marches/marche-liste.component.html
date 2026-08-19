@@ -1,0 +1,78 @@
+<div class="page">
+  <header class="page-header">
+    <p class="eyebrow">Six-Fours-les-Plages · Marchés publics</p>
+    <h1>Où va l'argent public</h1>
+    <p class="subtitle">
+      Consultez les {{ resultat?.totalElements ?? '...' }} marchés publics attribués par la commune depuis 2018.
+      <a routerLink="/statistiques" class="lien-stats">Voir les statistiques →</a>
+    </p>
+  </header>
+
+  <form class="filtres" (ngSubmit)="rechercher()">
+    <input
+      type="text"
+      class="filtre-texte"
+      placeholder="Rechercher un objet ou une entreprise..."
+      [(ngModel)]="filtres.texte"
+      name="texte" />
+
+    <div class="filtres-secondaires">
+      <label>
+        Depuis le
+        <input type="date" [(ngModel)]="filtres.dateDebut" name="dateDebut" />
+      </label>
+      <label>
+        Jusqu'au
+        <input type="date" [(ngModel)]="filtres.dateFin" name="dateFin" />
+      </label>
+      <label>
+        Montant min (€)
+        <input type="number" [(ngModel)]="filtres.montantMin" name="montantMin" />
+      </label>
+      <label>
+        Montant max (€)
+        <input type="number" [(ngModel)]="filtres.montantMax" name="montantMax" />
+      </label>
+      <label>
+        Trier par
+        <select [(ngModel)]="filtres.tri" name="tri">
+          <option value="date">Date (récent → ancien)</option>
+          <option value="montant">Montant (élevé → bas)</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-primary">Filtrer</button>
+    </div>
+  </form>
+
+  <div *ngIf="chargement" class="etat-info">Chargement des marchés...</div>
+  <div *ngIf="erreur" class="etat-erreur">
+    Impossible de charger les marchés. Vérifiez que le serveur backend est bien lancé.
+  </div>
+
+  <table class="table-marches" *ngIf="resultat && !chargement">
+    <thead>
+      <tr>
+        <th>Objet</th>
+        <th>Titulaire</th>
+        <th class="col-montant">Montant</th>
+        <th>Date</th>
+        <th>Procédure</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let marche of resultat.content" [routerLink]="['/marches', marche.id]" class="ligne-marche">
+        <td class="col-objet">{{ marche.objet }}</td>
+        <td>{{ marche.titulairePrincipal }}</td>
+        <td class="col-montant montant">{{ formatMontant(marche.montant) }}</td>
+        <td class="col-date">{{ formatDate(marche.dateNotification) }}</td>
+        <td><span class="badge-procedure">{{ marche.procedure }}</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pagination" *ngIf="resultat && resultat.totalPages > 1">
+    <button (click)="changerPage(resultat.number - 1)" [disabled]="resultat.number === 0">← Précédent</button>
+    <span>Page {{ resultat.number + 1 }} sur {{ resultat.totalPages }}</span>
+    <button (click)="changerPage(resultat.number + 1)" [disabled]="resultat.number >= resultat.totalPages - 1">Suivant →</button>
+  </div>
+</div>

@@ -1,0 +1,120 @@
+<div class="page">
+  <div *ngIf="chargement" class="etat-info">Chargement du marché...</div>
+  
+  <div *ngIf="erreur" class="etat-erreur">
+    Impossible de charger le marché. 
+    <a routerLink="/marches">Retour à la liste</a>
+  </div>
+
+  <div *ngIf="marche && !chargement" class="detail-marche">
+    <!-- En-tête -->
+    <div class="detail-header">
+      <a routerLink="/marches" class="btn-retour">← Retour à la liste</a>
+      <p class="eyebrow">{{ marche.acheteurNom }} · Marché public</p>
+      <h1>{{ marche.objet }}</h1>
+    </div>
+
+    <!-- Informations principales -->
+    <div class="detail-grid">
+      <!-- Bloc Montant -->
+      <div class="detail-card">
+        <h2>💰 Montant</h2>
+        <p class="montant-principal">{{ formatMontant(marche.montant) }}</p>
+        
+        <div *ngIf="marche.aDesAvenants" class="avenants-section">
+          <button (click)="toggleAvenants()" class="btn-lien">
+            {{ afficherAvenants ? '▼' : '▶' }} Voir l'historique des avenants ({{ avenants.length }})
+          </button>
+          
+          <div *ngIf="afficherAvenants" class="avenants-liste">
+            <table class="table-avenants">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Nouveau montant</th>
+                  <th>Nouvelle durée</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let avenant of avenants">
+                  <td>{{ formatDate(avenant.dateAvenant) }}</td>
+                  <td class="montant">{{ formatMontant(avenant.montantApres) }}</td>
+                  <td>{{ avenant.dureeApresMois ? avenant.dureeApresMois + ' mois' : 'Non renseignée' }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p class="note-avenants">
+              💡 Le montant affiché en haut est celui du dernier avenant en date.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloc Titulaire(s) -->
+      <div class="detail-card">
+        <h2>🏢 Titulaire{{ marche.titulaires.length > 1 ? 's' : '' }}</h2>
+        <ul class="titulaires-liste">
+          <li *ngFor="let titulaire of marche.titulaires">
+            <a [routerLink]="['/fournisseurs', titulaire.siret]" class="titulaire-lien">
+              <strong>{{ titulaire.nom }}</strong>
+              <span class="siret">SIRET : {{ titulaire.siret }}</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Bloc Dates & Durée -->
+      <div class="detail-card">
+        <h2>📅 Calendrier</h2>
+        <dl class="detail-list">
+          <dt>Date de notification</dt>
+          <dd>{{ formatDate(marche.dateNotification) }}</dd>
+          
+          <dt>Durée du marché</dt>
+          <dd>{{ marche.dureeMois ? marche.dureeMois + ' mois' : 'Non renseignée' }}</dd>
+        </dl>
+      </div>
+
+      <!-- Bloc Procédure -->
+      <div class="detail-card">
+        <h2>⚖️ Procédure</h2>
+        <p class="procedure-type">
+          <span class="badge-procedure">{{ marche.procedure }}</span>
+        </p>
+        <p class="procedure-explication">
+          {{ getProcedureExplication(marche.procedure) }}
+        </p>
+      </div>
+
+      <!-- Bloc Catégorie -->
+      <div class="detail-card">
+        <h2>📦 Catégorie</h2>
+        <p class="cpv-libelle">{{ getCpvLibelle(marche.cpvCode) }}</p>
+        <p class="cpv-code">Code CPV : {{ marche.cpvCode }}</p>
+      </div>
+
+      <!-- Bloc Source -->
+      <div class="detail-card">
+        <h2>🔗 Source des données</h2>
+        <p class="source-info">
+          Ces données proviennent des Données Essentielles de la Commande Publique (DECP), 
+          publiées en open data conformément à la réglementation.
+        </p>
+        <p class="source-fichier">
+          <strong>Fichier source :</strong> {{ marche.sourceFilename }}
+        </p>
+        <a href="https://data.gouv.fr" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+          Consulter les données sur data.gouv.fr ↗
+        </a>
+      </div>
+    </div>
+
+    <!-- Section commentaires et signalements (à venir) -->
+    <div class="detail-card section-interaction">
+      <h2>💬 Commentaires et signalements</h2>
+      <p class="note-prochainement">
+        Cette fonctionnalité sera disponible prochainement (semaine 5 du projet).
+      </p>
+    </div>
+  </div>
+</div>
