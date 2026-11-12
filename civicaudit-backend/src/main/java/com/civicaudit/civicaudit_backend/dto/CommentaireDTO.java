@@ -79,4 +79,18 @@ public class CommentaireDTO {
     public void setEstAuteur(Boolean estAuteur) {
         this.estAuteur = estAuteur;
     }
+
+    // --- Champs ajoutés : pseudonyme public de l'auteur + marché concerné (vue modération) ---
+    private String auteurNom;
+    private Long marcheId;
+    private String marcheObjet;
+
+    public String getAuteurNom() { return auteurNom; }
+    public void setAuteurNom(String auteurNom) { this.auteurNom = auteurNom; }
+
+    public Long getMarcheId() { return marcheId; }
+    public void setMarcheId(Long marcheId) { this.marcheId = marcheId; }
+
+    public String getMarcheObjet() { return marcheObjet; }
+    public void setMarcheObjet(String marcheObjet) { this.marcheObjet = marcheObjet; }
 }

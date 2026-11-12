@@ -1,5 +1,7 @@
 package com.civicaudit.civicaudit_backend.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.LocalDateTime;
 
 public class SignalementDTO {
@@ -93,6 +95,7 @@ public class SignalementDTO {
         this.nombreVotes = nombreVotes;
     }
 
+    @JsonProperty("aVote") // sans cette annotation, Jackson sérialise "avote"
     public Boolean getAVote() {
         return aVote;
     }
@@ -100,4 +103,18 @@ public class SignalementDTO {
     public void setAVote(Boolean aVote) {
         this.aVote = aVote;
     }
+
+    // --- Champs ajoutés : pseudonyme public de l'auteur + marché concerné (vue modération) ---
+    private String auteurNom;
+    private Long marcheId;
+    private String marcheObjet;
+
+    public String getAuteurNom() { return auteurNom; }
+    public void setAuteurNom(String auteurNom) { this.auteurNom = auteurNom; }
+
+    public Long getMarcheId() { return marcheId; }
+    public void setMarcheId(Long marcheId) { this.marcheId = marcheId; }
+
+    public String getMarcheObjet() { return marcheObjet; }
+    public void setMarcheObjet(String marcheObjet) { this.marcheObjet = marcheObjet; }
 }

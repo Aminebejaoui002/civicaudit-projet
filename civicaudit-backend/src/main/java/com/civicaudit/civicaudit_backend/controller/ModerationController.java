@@ -4,17 +4,24 @@ import com.civicaudit.civicaudit_backend.dto.CommentaireDTO;
 import com.civicaudit.civicaudit_backend.dto.SignalementDTO;
 import com.civicaudit.civicaudit_backend.service.ModerationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Module Modération (CDC 3.4). Toutes les routes sont réservées aux rôles MODERATEUR et ADMIN :
+ * double protection, au niveau de la SecurityFilterChain (/api/moderation/**) et ici via @PreAuthorize.
+ */
 @RestController
 @RequestMapping("/api/moderation")
-@Tag(name = "Modération", description = "Endpoints pour les modérateurs")
-@CrossOrigin(origins = "*")
+@Tag(name = "Modération", description = "Endpoints réservés aux modérateurs (rôles MODERATEUR ou ADMIN)")
+@SecurityRequirement(name = "bearerAuth")
+@PreAuthorize("hasAnyRole('MODERATEUR', 'ADMIN')")
 public class ModerationController {
 
     private final ModerationService moderationService;
@@ -24,57 +31,36 @@ public class ModerationController {
     }
 
     @GetMapping("/commentaires")
-    @Operation(summary = "Lister les commentaires en attente", description = "Réservé aux modérateurs")
-    public ResponseEntity<List<CommentaireDTO>> getCommentairesEnAttente() {
-        List<CommentaireDTO> commentaires = moderationService.getCommentairesEnAttente();
-        return ResponseEntity.ok(commentaires);
+    @Operation(summary = "Lister les commentaires en attente de modération")
+    public List<CommentaireDTO> getCommentairesEnAttente() {
+        return moderationService.getCommentairesEnAttente();
     }
 
     @GetMapping("/signalements")
-    @Operation(summary = "Lister tous les signalements", description = "Réservé aux modérateurs")
-    public ResponseEntity<List<SignalementDTO>> getSignalements() {
-        List<SignalementDTO> signalements = moderationService.getTousSignalements();
-        return ResponseEntity.ok(signalements);
+    @Operation(summary = "Lister tous les signalements (avec nombre de votes)")
+    public List<SignalementDTO> getSignalements() {
+        return moderationService.getTousSignalements();
+    }
+
+    @PatchMapping("/commentaires/{id}")
+    @Operation(summary = "Approuver ou rejeter un commentaire",
+            description = "Corps attendu : {\"statut\": \"APPROUVE\"} ou {\"statut\": \"REJETE\"}")
+    public ResponseEntity<Void> modererCommentaire(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        moderationService.changerStatutCommentaire(id, body.get("statut"));
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/commentaires/{id}/approuver")
-    @Operation(summary = "Approuver un commentaire")
+    @Operation(summary = "Approuver un commentaire (raccourci)")
     public ResponseEntity<Void> approuverCommentaire(@PathVariable Long id) {
-        try {
-            moderationService.approuverCommentaire(id);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        moderationService.approuverCommentaire(id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/commentaires/{id}/rejeter")
-    @Operation(summary = "Rejeter un commentaire")
+    @Operation(summary = "Rejeter un commentaire (raccourci)")
     public ResponseEntity<Void> rejeterCommentaire(@PathVariable Long id) {
-        try {
-            moderationService.rejeterCommentaire(id);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-
-    @PostMapping("/signalements/{id}/statut")
-    @Operation(summary = "Changer le statut d'un signalement")
-    public ResponseEntity<Void> changerStatutSignalement(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-        
-        String statut = body.get("statut");
-        if (statut == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        try {
-            moderationService.changerStatutSignalement(id, statut);
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        moderationService.rejeterCommentaire(id);
+        return ResponseEntity.ok().build();
     }
 }

@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/marches/{marcheId}/signalements")
 @Tag(name = "Signalements", description = "Gestion des signalements citoyens")
-@CrossOrigin(origins = "*")
 public class SignalementController {
 
     private final SignalementService signalementService;
@@ -35,13 +34,9 @@ public class SignalementController {
             return ResponseEntity.status(401).build();
         }
 
-        try {
-            SignalementDTO signalement = signalementService.creerSignalement(
-                    marcheId, request, authentication.getName());
-            return ResponseEntity.ok(signalement);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        SignalementDTO signalement = signalementService.creerSignalement(
+                marcheId, request, authentication.getName());
+        return ResponseEntity.ok(signalement);
     }
 
     @GetMapping
@@ -66,11 +61,7 @@ public class SignalementController {
             return ResponseEntity.status(401).build();
         }
 
-        try {
-            signalementService.voterSignalement(signalementId, authentication.getName());
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        signalementService.voterSignalement(signalementId, authentication.getName());
+        return ResponseEntity.ok().build();
     }
 }

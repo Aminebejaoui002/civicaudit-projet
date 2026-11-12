@@ -20,4 +20,9 @@ public interface SignalementRepository extends JpaRepository<Signalement, Long> 
     List<Signalement> findByMarcheIdOrderByVotesDesc(@Param("marcheId") Long marcheId);
     
     boolean existsByUserIdAndMarcheIdAndCategorie(Long userId, Long marcheId, Signalement.Categorie categorie);
+
+    // Anti-spam (CDC 4) : nombre d'actions d'un utilisateur depuis une date donnée
+    long countByUserIdAndDateCreationAfter(Long userId, java.time.LocalDateTime depuis);
+
+    long countByMarcheId(Long marcheId);
 }

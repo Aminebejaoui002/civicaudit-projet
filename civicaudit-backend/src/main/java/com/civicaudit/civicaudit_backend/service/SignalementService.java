@@ -22,15 +22,21 @@ public class SignalementService {
     private final MarchePublicRepository marcheRepository;
     private final UserRepository userRepository;
     private final VoteRepository voteRepository;
+    private final LimiteActionsService limiteActionsService;
+
+    /** Nombre de votes à partir duquel un signalement NOUVEAU passe automatiquement EN_DISCUSSION (CDC 3.3.2). */
+    static final long SEUIL_VOTES_EN_DISCUSSION = 3;
 
     public SignalementService(SignalementRepository signalementRepository,
                              MarchePublicRepository marcheRepository,
                              UserRepository userRepository,
-                             VoteRepository voteRepository) {
+                             VoteRepository voteRepository,
+                             LimiteActionsService limiteActionsService) {
         this.signalementRepository = signalementRepository;
         this.marcheRepository = marcheRepository;
         this.userRepository = userRepository;
         this.voteRepository = voteRepository;
+        this.limiteActionsService = limiteActionsService;
     }
 
     public SignalementDTO creerSignalement(Long marcheId, SignalementRequest request, String userEmail) {
@@ -43,7 +49,7 @@ public class SignalementService {
         Signalement.Categorie categorie;
         try {
             categorie = Signalement.Categorie.valueOf(request.getCategorie());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | NullPointerException e) {
             throw new IllegalArgumentException("Catégorie invalide");
         }
 
@@ -52,11 +58,13 @@ public class SignalementService {
             throw new IllegalArgumentException("Vous avez déjà signalé ce marché dans cette catégorie");
         }
 
+        limiteActionsService.verifierQuota(user.getId());
+
         Signalement signalement = new Signalement();
         signalement.setMarche(marche);
         signalement.setUser(user);
         signalement.setCategorie(categorie);
-        signalement.setDescription(request.getDescription());
+        signalement.setDescription(request.getDescription().trim());
         signalement.setStatut(Signalement.Statut.NOUVEAU);
 
         signalement = signalementRepository.save(signalement);
@@ -91,6 +99,8 @@ public class SignalementService {
             throw new IllegalArgumentException("Vous avez déjà voté pour ce signalement");
         }
 
+        limiteActionsService.verifierQuota(user.getId());
+
         Vote vote = new Vote();
         vote.setSignalement(signalement);
         vote.setUser(user);
@@ -98,7 +108,7 @@ public class SignalementService {
 
         // Passer automatiquement EN_DISCUSSION si 3+ votes
         long nombreVotes = voteRepository.countBySignalementId(signalementId);
-        if (nombreVotes >= 3 && signalement.getStatut() == Signalement.Statut.NOUVEAU) {
+        if (nombreVotes >= SEUIL_VOTES_EN_DISCUSSION && signalement.getStatut() == Signalement.Statut.NOUVEAU) {
             signalement.setStatut(Signalement.Statut.EN_DISCUSSION);
             signalementRepository.save(signalement);
         }
@@ -114,12 +124,13 @@ public class SignalementService {
                 signalement.getCategorie().name(),
                 signalement.getDescription(),
                 signalement.getStatut().name(),
-                signalement.getUser().getEmail(),
+                null, // email jamais exposé publiquement
                 signalement.getUser().getId(),
                 signalement.getDateCreation(),
                 nombreVotes
         );
         dto.setAVote(aVote);
+        dto.setAuteurNom(AuteurAffichage.nom(signalement.getUser()));
         return dto;
     }
 }

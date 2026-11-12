@@ -11,4 +11,11 @@ public interface CommentaireRepository extends JpaRepository<Commentaire, Long> 
     List<Commentaire> findByMarcheIdAndSupprimeOrderByDateCreationDesc(Long marcheId, Boolean supprime);
     List<Commentaire> findByStatutOrderByDateCreationDesc(Commentaire.Statut statut);
     List<Commentaire> findByUserIdAndSupprimeOrderByDateCreationDesc(Long userId, Boolean supprime);
+
+    // Anti-spam (CDC 4) : nombre d'actions d'un utilisateur depuis une date donnée
+    long countByUserIdAndDateCreationAfter(Long userId, java.time.LocalDateTime depuis);
+
+    long countByMarcheIdAndStatutAndSupprimeFalse(Long marcheId, Commentaire.Statut statut);
+
+    List<Commentaire> findByUserId(Long userId);
 }

@@ -15,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/marches/{marcheId}/commentaires")
 @Tag(name = "Commentaires", description = "Gestion des commentaires sur les marchés")
-@CrossOrigin(origins = "*")
 public class CommentaireController {
 
     private final CommentaireService commentaireService;
@@ -35,13 +34,9 @@ public class CommentaireController {
             return ResponseEntity.status(401).build();
         }
 
-        try {
-            CommentaireDTO commentaire = commentaireService.creerCommentaire(
-                    marcheId, request, authentication.getName());
-            return ResponseEntity.ok(commentaire);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        CommentaireDTO commentaire = commentaireService.creerCommentaire(
+                marcheId, request, authentication.getName());
+        return ResponseEntity.ok(commentaire);
     }
 
     @GetMapping
@@ -66,11 +61,7 @@ public class CommentaireController {
             return ResponseEntity.status(401).build();
         }
 
-        try {
-            commentaireService.supprimerCommentaire(commentaireId, authentication.getName());
-            return ResponseEntity.ok().build();
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        commentaireService.supprimerCommentaire(commentaireId, authentication.getName());
+        return ResponseEntity.ok().build();
     }
 }

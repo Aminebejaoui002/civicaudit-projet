@@ -6,6 +6,7 @@ import com.civicaudit.civicaudit_backend.entity.Commentaire;
 import com.civicaudit.civicaudit_backend.entity.Signalement;
 import com.civicaudit.civicaudit_backend.repository.CommentaireRepository;
 import com.civicaudit.civicaudit_backend.repository.SignalementRepository;
+import com.civicaudit.civicaudit_backend.repository.VoteRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,16 +17,20 @@ public class ModerationService {
 
     private final CommentaireRepository commentaireRepository;
     private final SignalementRepository signalementRepository;
+    private final VoteRepository voteRepository;
 
     public ModerationService(CommentaireRepository commentaireRepository,
-                            SignalementRepository signalementRepository) {
+                             SignalementRepository signalementRepository,
+                             VoteRepository voteRepository) {
         this.commentaireRepository = commentaireRepository;
         this.signalementRepository = signalementRepository;
+        this.voteRepository = voteRepository;
     }
 
     public List<CommentaireDTO> getCommentairesEnAttente() {
         return commentaireRepository.findByStatutOrderByDateCreationDesc(Commentaire.Statut.EN_ATTENTE)
                 .stream()
+                .filter(c -> !Boolean.TRUE.equals(c.getSupprime()))
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -38,36 +43,45 @@ public class ModerationService {
     }
 
     public void approuverCommentaire(Long commentaireId) {
-        Commentaire commentaire = commentaireRepository.findById(commentaireId)
-                .orElseThrow(() -> new IllegalArgumentException("Commentaire introuvable"));
-        
-        commentaire.setStatut(Commentaire.Statut.APPROUVE);
-        commentaireRepository.save(commentaire);
+        changerStatutCommentaire(commentaireId, Commentaire.Statut.APPROUVE.name());
     }
 
+    /** Un commentaire rejeté n'est jamais affiché mais reste en base pour traçabilité (CDC 3.4). */
     public void rejeterCommentaire(Long commentaireId) {
+        changerStatutCommentaire(commentaireId, Commentaire.Statut.REJETE.name());
+    }
+
+    public void changerStatutCommentaire(Long commentaireId, String nouveauStatut) {
         Commentaire commentaire = commentaireRepository.findById(commentaireId)
                 .orElseThrow(() -> new IllegalArgumentException("Commentaire introuvable"));
-        
-        commentaire.setStatut(Commentaire.Statut.REJETE);
+        Commentaire.Statut statut = parseEnum(Commentaire.Statut.class, nouveauStatut, "Statut de commentaire invalide");
+        commentaire.setStatut(statut);
         commentaireRepository.save(commentaire);
     }
 
     public void changerStatutSignalement(Long signalementId, String nouveauStatut) {
         Signalement signalement = signalementRepository.findById(signalementId)
                 .orElseThrow(() -> new IllegalArgumentException("Signalement introuvable"));
-        
+        Signalement.Statut statut = parseEnum(Signalement.Statut.class, nouveauStatut, "Statut de signalement invalide");
+        signalement.setStatut(statut);
+        signalementRepository.save(signalement);
+    }
+
+    private static <E extends Enum<E>> E parseEnum(Class<E> type, String valeur, String messageErreur) {
+        if (valeur == null || valeur.isBlank()) {
+            throw new IllegalArgumentException(messageErreur);
+        }
         try {
-            Signalement.Statut statut = Signalement.Statut.valueOf(nouveauStatut);
-            signalement.setStatut(statut);
-            signalementRepository.save(signalement);
+            return Enum.valueOf(type, valeur.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Statut invalide");
+            throw new IllegalArgumentException(messageErreur);
         }
     }
 
+    // Les modérateurs voient l'email de l'auteur (nécessaire pour traiter une contestation) ;
+    // le public ne voit qu'un pseudonyme (voir AuteurAffichage).
     private CommentaireDTO toDTO(Commentaire commentaire) {
-        return new CommentaireDTO(
+        CommentaireDTO dto = new CommentaireDTO(
                 commentaire.getId(),
                 commentaire.getContenu(),
                 commentaire.getStatut().name(),
@@ -75,10 +89,14 @@ public class ModerationService {
                 commentaire.getUser().getId(),
                 commentaire.getDateCreation()
         );
+        dto.setAuteurNom(AuteurAffichage.nom(commentaire.getUser()));
+        dto.setMarcheId(commentaire.getMarche().getId());
+        dto.setMarcheObjet(commentaire.getMarche().getObjet());
+        return dto;
     }
 
     private SignalementDTO toSignalementDTO(Signalement signalement) {
-        return new SignalementDTO(
+        SignalementDTO dto = new SignalementDTO(
                 signalement.getId(),
                 signalement.getCategorie().name(),
                 signalement.getDescription(),
@@ -86,7 +104,11 @@ public class ModerationService {
                 signalement.getUser().getEmail(),
                 signalement.getUser().getId(),
                 signalement.getDateCreation(),
-                0L // nombreVotes - pas nécessaire pour la modération
+                voteRepository.countBySignalementId(signalement.getId())
         );
+        dto.setAuteurNom(AuteurAffichage.nom(signalement.getUser()));
+        dto.setMarcheId(signalement.getMarche().getId());
+        dto.setMarcheObjet(signalement.getMarche().getObjet());
+        return dto;
     }
 }

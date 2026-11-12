@@ -8,4 +8,7 @@ import org.springframework.stereotype.Repository;
 public interface VoteRepository extends JpaRepository<Vote, Long> {
     boolean existsByUserIdAndSignalementId(Long userId, Long signalementId);
     long countBySignalementId(Long signalementId);
+
+    // Anti-spam (CDC 4) : nombre d'actions d'un utilisateur depuis une date donnée
+    long countByUserIdAndDateCreationAfter(Long userId, java.time.LocalDateTime depuis);
 }
