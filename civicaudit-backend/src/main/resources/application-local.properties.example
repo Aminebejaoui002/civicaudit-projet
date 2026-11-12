@@ -1,0 +1,9 @@
+# Copier ce fichier en application-local.properties (même dossier) et renseigner vos valeurs.
+# application-local.properties est ignoré par Git : il ne doit jamais être versionné.
+spring.datasource.password=votre_mot_de_passe_postgres
+jwt.secret=une-cle-secrete-longue-d-au-moins-32-caracteres-a-changer
+civicaudit.admin.password=un_mot_de_passe_admin_solide
+# Optionnel : import automatique au démarrage
+# civicaudit.import.file=C:/Users/vous/decp-exploration/six_fours_les_plages_marches.csv
+# Optionnel : SIRET de l'acheteur à conserver
+# civicaudit.import.acheteur-id=

@@ -26,6 +26,14 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime dateCreation = LocalDateTime.now();
 
+    // Preuve du consentement RGPD explicite donné à l'inscription (CDC section 4)
+    @Column(name = "date_consentement")
+    private LocalDateTime dateConsentement;
+
+    // Date de suppression du compte (droit à l'effacement, CDC 3.6)
+    @Column(name = "date_suppression")
+    private LocalDateTime dateSuppression;
+
     public enum Role {
         USER, MODERATEUR, ADMIN
     }
@@ -77,5 +85,21 @@ public class User {
 
     public void setDateCreation(LocalDateTime dateCreation) {
         this.dateCreation = dateCreation;
+    }
+
+    public LocalDateTime getDateConsentement() {
+        return dateConsentement;
+    }
+
+    public void setDateConsentement(LocalDateTime dateConsentement) {
+        this.dateConsentement = dateConsentement;
+    }
+
+    public LocalDateTime getDateSuppression() {
+        return dateSuppression;
+    }
+
+    public void setDateSuppression(LocalDateTime dateSuppression) {
+        this.dateSuppression = dateSuppression;
     }
 }

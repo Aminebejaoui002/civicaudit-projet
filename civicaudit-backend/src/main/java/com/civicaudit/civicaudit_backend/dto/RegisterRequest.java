@@ -1,5 +1,6 @@
 package com.civicaudit.civicaudit_backend.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -14,6 +15,18 @@ public class RegisterRequest {
     @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
     @Pattern(regexp = ".*\\d.*", message = "Le mot de passe doit contenir au moins 1 chiffre")
     private String password;
+
+    // Consentement RGPD explicite : case à cocher non pré-cochée côté frontend (CDC section 4)
+    @AssertTrue(message = "Vous devez accepter la politique de confidentialité")
+    private Boolean consentementRgpd;
+
+    public Boolean getConsentementRgpd() {
+        return consentementRgpd;
+    }
+
+    public void setConsentementRgpd(Boolean consentementRgpd) {
+        this.consentementRgpd = consentementRgpd;
+    }
 
     // Getters and Setters
     public String getEmail() {

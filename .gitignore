@@ -21,3 +21,6 @@ Thumbs.db
 # Données sensibles - NE JAMAIS versionner
 civicaudit-backend/src/main/resources/application-local.properties
 *.env
+# Fichiers locaux contenant des identifiants - NE JAMAIS versionner
+ADMIN_CREDENTIALS.md
+_transfer/
