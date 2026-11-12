@@ -24,6 +24,14 @@ export interface MarcheDetail {
   cpvCode: string;
   sourceFilename: string;
   aDesAvenants: boolean;
+  alertes: Alerte[];
+}
+
+export interface Alerte {
+  id: number;
+  type: 'CONCENTRATION_ELEVEE' | 'MONTANT_ATYPIQUE' | 'SEUIL_SUSPECT';
+  valeurCalculee: number;
+  dateGeneration: string;
 }
 
 export interface Avenant {

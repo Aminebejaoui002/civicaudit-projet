@@ -1,8 +1,10 @@
 package com.civicaudit.civicaudit_backend.service;
 
+import com.civicaudit.civicaudit_backend.dto.AlerteDTO;
 import com.civicaudit.civicaudit_backend.dto.AvenantDTO;
 import com.civicaudit.civicaudit_backend.dto.MarcheDetailDTO;
 import com.civicaudit.civicaudit_backend.dto.TitulaireDTO;
+import com.civicaudit.civicaudit_backend.entity.Alerte;
 import com.civicaudit.civicaudit_backend.entity.Avenant;
 import com.civicaudit.civicaudit_backend.entity.MarchePublic;
 import com.civicaudit.civicaudit_backend.repository.AvenantRepository;
@@ -21,10 +23,14 @@ public class MarcheDetailService {
 
     private final MarchePublicRepository marchePublicRepository;
     private final AvenantRepository avenantRepository;
+    private final AlerteService alerteService;
 
-    public MarcheDetailService(MarchePublicRepository marchePublicRepository, AvenantRepository avenantRepository) {
+    public MarcheDetailService(MarchePublicRepository marchePublicRepository, 
+                              AvenantRepository avenantRepository,
+                              AlerteService alerteService) {
         this.marchePublicRepository = marchePublicRepository;
         this.avenantRepository = avenantRepository;
+        this.alerteService = alerteService;
     }
 
     public MarcheDetailDTO getDetail(Long marcheId) {
@@ -40,6 +46,11 @@ public class MarcheDetailService {
                 .map(t -> new TitulaireDTO(t.getId(), t.getNom()))
                 .collect(Collectors.toList());
 
+        // Récupérer les alertes associées au marché
+        List<AlerteDTO> alertes = alerteService.getAlertesByMarche(marcheId).stream()
+                .map(a -> new AlerteDTO(a.getId(), a.getType().name(), a.getValeurCalculee(), a.getDateGeneration()))
+                .collect(Collectors.toList());
+
         return new MarcheDetailDTO(
                 marche.getId(),
                 marche.getObjet(),
@@ -51,7 +62,8 @@ public class MarcheDetailService {
                 marche.getProcedure() == null ? NON_RENSEIGNE : marche.getProcedure(),
                 marche.getCpvCode() == null ? NON_RENSEIGNE : marche.getCpvCode(),
                 marche.getSourceFilename() == null ? NON_RENSEIGNE : marche.getSourceFilename(),
-                !avenants.isEmpty()
+                !avenants.isEmpty(),
+                alertes
         );
     }
 

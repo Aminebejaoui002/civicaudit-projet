@@ -1,13 +1,16 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MarcheService } from '../../core/services/marche.service';
-import { MarcheDetail, Avenant } from '../../core/models/marche.model';
+import { MarcheDetail, Avenant, Alerte } from '../../core/models/marche.model';
+import { getAlerteMessage, getAlerteTypeLabel } from '../../core/models/alerte.model';
+import { MarcheInteractionsComponent } from './marche-interactions.component';
 
 @Component({
   selector: 'app-marche-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule, MarcheInteractionsComponent],
   templateUrl: './marche-detail.component.html',
   styleUrl: './marche-detail.component.scss'
 })
@@ -146,5 +149,26 @@ export class MarcheDetailComponent implements OnInit {
       '98': 'Autres services'
     };
     return categories[categorie] || `Catégorie CPV ${code}`;
+  }
+
+  getAlerteMessage(alerte: Alerte): string {
+    return getAlerteMessage(alerte);
+  }
+
+  getAlerteTypeLabel(type: string): string {
+    return getAlerteTypeLabel(type);
+  }
+
+  getAlerteClass(type: string): string {
+    switch (type) {
+      case 'CONCENTRATION_ELEVEE':
+        return 'alerte-warning';
+      case 'MONTANT_ATYPIQUE':
+        return 'alerte-info';
+      case 'SEUIL_SUSPECT':
+        return 'alerte-danger';
+      default:
+        return '';
+    }
   }
 }

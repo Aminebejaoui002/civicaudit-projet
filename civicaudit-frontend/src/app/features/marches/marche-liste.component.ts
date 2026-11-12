@@ -16,6 +16,8 @@ export class MarcheListeComponent implements OnInit {
   resultat: PageResult<MarcheListe> | null = null;
   chargement = false;
   erreur = false;
+  exportEnCours = false;
+  showFilters = false;
 
   filtres: MarcheFiltres = {
     page: 0,
@@ -69,5 +71,44 @@ export class MarcheListeComponent implements OnInit {
 
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  exporterCSV(): void {
+    this.exportEnCours = true;
+    this.marcheService.exporterCSV().subscribe({
+      next: (data) => {
+        // Créer un blob et télécharger le fichier
+        const blob = new Blob([data], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `marches_publics_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.exportEnCours = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Erreur export CSV:', err);
+        alert('Erreur lors de l\'export CSV');
+        this.exportEnCours = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+  }
+
+  resetFilters(): void {
+    this.filtres = {
+      page: 0,
+      taille: 20,
+      tri: 'date'
+    };
+    this.rechercher();
   }
 }

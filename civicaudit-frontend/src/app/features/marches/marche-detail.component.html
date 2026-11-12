@@ -14,6 +14,21 @@
       <h1>{{ marche.objet }}</h1>
     </div>
 
+    <!-- Alertes automatiques -->
+    <div *ngIf="marche.alertes && marche.alertes.length > 0" class="alertes-section">
+      <h2>⚠️ Alertes automatiques</h2>
+      <div class="alertes-liste">
+        <div *ngFor="let alerte of marche.alertes" class="alerte-card" [ngClass]="getAlerteClass(alerte.type)">
+          <div class="alerte-icon">⚠️</div>
+          <div class="alerte-content">
+            <h3>{{ getAlerteTypeLabel(alerte.type) }}</h3>
+            <p>{{ getAlerteMessage(alerte) }}</p>
+            <span class="alerte-date">Générée le {{ formatDate(alerte.dateGeneration) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Informations principales -->
     <div class="detail-grid">
       <!-- Bloc Montant -->
@@ -109,12 +124,7 @@
       </div>
     </div>
 
-    <!-- Section commentaires et signalements (à venir) -->
-    <div class="detail-card section-interaction">
-      <h2>💬 Commentaires et signalements</h2>
-      <p class="note-prochainement">
-        Cette fonctionnalité sera disponible prochainement (semaine 5 du projet).
-      </p>
-    </div>
+    <!-- Section commentaires et signalements -->
+    <app-marche-interactions [marcheId]="marche.id"></app-marche-interactions>
   </div>
 </div>

@@ -62,7 +62,7 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
 
     // Graphique montant par année
     const canvasMontant = document.getElementById('chartMontantAnnee') as HTMLCanvasElement;
-    if (canvasMontant) {
+    if (canvasMontant && this.stats.montantParAnnee) {
       const annees = Object.keys(this.stats.montantParAnnee).sort();
       const montants = annees.map(a => this.stats!.montantParAnnee[a]);
       
@@ -146,7 +146,7 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
 
     // Graphique répartition procédures
     const canvasProcedures = document.getElementById('chartProcedures') as HTMLCanvasElement;
-    if (canvasProcedures) {
+    if (canvasProcedures && this.stats.repartitionProcedures) {
       const procedures = Object.keys(this.stats.repartitionProcedures);
       const valeurs = Object.values(this.stats.repartitionProcedures);
       
@@ -177,7 +177,7 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
 
     // Graphique répartition CPV
     const canvasCpv = document.getElementById('chartCpv') as HTMLCanvasElement;
-    if (canvasCpv) {
+    if (canvasCpv && this.stats.repartitionCpv) {
       const cpvs = Object.keys(this.stats.repartitionCpv);
       const valeurs = Object.values(this.stats.repartitionCpv);
       

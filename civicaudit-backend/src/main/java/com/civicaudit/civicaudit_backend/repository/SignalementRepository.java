@@ -11,6 +11,8 @@ import java.util.List;
 @Repository
 public interface SignalementRepository extends JpaRepository<Signalement, Long> {
     
+    List<Signalement> findAllByOrderByDateCreationDesc();
+    
     @Query("SELECT s FROM Signalement s LEFT JOIN Vote v ON s.id = v.signalement.id " +
            "WHERE s.marche.id = :marcheId " +
            "GROUP BY s.id " +

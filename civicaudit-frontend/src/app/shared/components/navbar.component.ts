@@ -17,6 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="navbar-links">
           <a routerLink="/marches" routerLinkActive="active">Marchés</a>
           <a routerLink="/statistiques" routerLinkActive="active">Statistiques</a>
+          <a *ngIf="authService.currentUser$ | async" routerLink="/moderation" routerLinkActive="active">Modération</a>
           
           <div class="navbar-auth">
             <ng-container *ngIf="(authService.currentUser$ | async) as user; else notConnected">
@@ -34,39 +35,42 @@ import { AuthService } from '../../core/services/auth.service';
   `,
   styles: [`
     .navbar {
-      background: white;
+      background: var(--bg);
       border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
+      padding: 0;
       position: sticky;
       top: 0;
       z-index: 100;
+      box-shadow: var(--shadow-sm);
     }
     
     .navbar-content {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 0 1.5rem;
+      padding: 1rem 1.5rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
     
     .navbar-brand {
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       font-weight: 700;
       color: var(--primary);
       text-decoration: none;
+      letter-spacing: -0.03em;
     }
     
     .navbar-links {
       display: flex;
       align-items: center;
-      gap: 2rem;
+      gap: 2.5rem;
       
       a {
-        color: var(--text);
+        color: var(--text-secondary);
         text-decoration: none;
         font-weight: 500;
+        font-size: 0.9375rem;
         transition: color 0.2s;
         
         &:hover {
@@ -75,6 +79,7 @@ import { AuthService } from '../../core/services/auth.service';
         
         &.active {
           color: var(--primary);
+          font-weight: 600;
         }
       }
     }
@@ -91,19 +96,20 @@ import { AuthService } from '../../core/services/auth.service';
     .user-info {
       font-size: 0.875rem;
       color: var(--text-muted);
+      font-weight: 500;
     }
     
     .btn-login,
     .btn-logout {
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      border-radius: 8px;
       font-weight: 500;
       transition: all 0.2s;
       font-size: 0.875rem;
     }
     
     .btn-login {
-      color: var(--primary);
+      color: var(--text);
       background: transparent;
       text-decoration: none;
       
@@ -120,21 +126,24 @@ import { AuthService } from '../../core/services/auth.service';
       
       &:hover {
         background: var(--bg-light);
+        border-color: var(--primary);
       }
     }
     
     .btn-register {
-      padding: 0.5rem 1rem;
+      padding: 0.5rem 1.25rem;
       background: var(--primary);
       color: white;
-      border-radius: 6px;
+      border-radius: 8px;
       font-weight: 500;
       font-size: 0.875rem;
       text-decoration: none;
-      transition: background 0.2s;
+      transition: all 0.2s;
       
       &:hover {
-        background: #2563eb;
+        background: var(--primary-light);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
       }
     }
     
@@ -167,6 +176,6 @@ export class NavbarComponent {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/marches']);
+    this.router.navigate(['/register']);
   }
 }

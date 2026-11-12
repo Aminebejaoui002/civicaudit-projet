@@ -1,0 +1,101 @@
+<div class="moderation-container">
+  <div class="header">
+    <h1>Panneau de modération</h1>
+    <p class="subtitle">Gérer les commentaires et signalements</p>
+  </div>
+
+  <div class="tabs">
+    <button 
+      class="tab" 
+      [class.active]="ongletActif === 'commentaires'"
+      (click)="changerOnglet('commentaires')">
+      Commentaires en attente ({{ commentaires.length }})
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="ongletActif === 'signalements'"
+      (click)="changerOnglet('signalements')">
+      Signalements ({{ signalements.length }})
+    </button>
+  </div>
+
+  <div class="content" *ngIf="!chargement">
+    <!-- Onglet Commentaires -->
+    <div *ngIf="ongletActif === 'commentaires'" class="commentaires-list">
+      <div *ngIf="commentaires.length === 0" class="empty-state">
+        <p>Aucun commentaire en attente de modération</p>
+      </div>
+
+      <div *ngFor="let commentaire of commentaires" class="moderation-card">
+        <div class="card-header">
+          <div class="author-info">
+            <strong>{{ commentaire.auteurNom }}</strong>
+            <span class="date">{{ commentaire.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <a [routerLink]="['/marches', commentaire.marcheId]" class="marche-link">
+            Voir le marché →
+          </a>
+        </div>
+        
+        <div class="card-body">
+          <p class="marche-objet">{{ commentaire.marcheObjet }}</p>
+          <p class="commentaire-contenu">{{ commentaire.contenu }}</p>
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-approve" (click)="approuverCommentaire(commentaire.id)">
+            ✓ Approuver
+          </button>
+          <button class="btn-reject" (click)="rejeterCommentaire(commentaire.id)">
+            ✕ Rejeter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Onglet Signalements -->
+    <div *ngIf="ongletActif === 'signalements'" class="signalements-list">
+      <div *ngIf="signalements.length === 0" class="empty-state">
+        <p>Aucun signalement</p>
+      </div>
+
+      <div *ngFor="let signalement of signalements" class="moderation-card">
+        <div class="card-header">
+          <div class="author-info">
+            <strong>{{ signalement.auteurNom }}</strong>
+            <span class="date">{{ signalement.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+            <span class="badge" [ngClass]="getStatutBadgeClass(signalement.statut)">
+              {{ getStatutLabel(signalement.statut) }}
+            </span>
+          </div>
+          <a [routerLink]="['/marches', signalement.marcheId]" class="marche-link">
+            Voir le marché →
+          </a>
+        </div>
+
+        <div class="card-body">
+          <p class="marche-objet">{{ signalement.marcheObjet }}</p>
+          <p class="categorie"><strong>Catégorie:</strong> {{ signalement.categorie }}</p>
+          <p class="description">{{ signalement.description }}</p>
+          <p class="votes">👍 {{ signalement.nbVotes }} vote(s)</p>
+        </div>
+
+        <div class="card-actions">
+          <select 
+            class="statut-select" 
+            [value]="signalement.statut"
+            (change)="changerStatutSignalement(signalement.id, $any($event.target).value)">
+            <option value="EN_ATTENTE">En attente</option>
+            <option value="EN_DISCUSSION">En discussion</option>
+            <option value="RESOLU">Résolu</option>
+            <option value="REJETE">Rejeté</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="chargement" class="loading">
+    <p>Chargement...</p>
+  </div>
+</div>

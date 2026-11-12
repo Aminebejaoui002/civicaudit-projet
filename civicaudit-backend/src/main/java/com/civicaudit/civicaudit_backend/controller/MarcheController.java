@@ -3,6 +3,9 @@ package com.civicaudit.civicaudit_backend.controller;
 import com.civicaudit.civicaudit_backend.dto.AvenantDTO;
 import com.civicaudit.civicaudit_backend.dto.MarcheDetailDTO;
 import com.civicaudit.civicaudit_backend.dto.MarcheListeDTO;
+import com.civicaudit.civicaudit_backend.entity.MarchePublic;
+import com.civicaudit.civicaudit_backend.repository.MarchePublicRepository;
+import com.civicaudit.civicaudit_backend.service.ExportService;
 import com.civicaudit.civicaudit_backend.service.MarcheConsultationService;
 import com.civicaudit.civicaudit_backend.service.MarcheDetailService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +13,12 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -23,11 +30,17 @@ public class MarcheController {
 
     private final MarcheConsultationService consultationService;
     private final MarcheDetailService detailService;
+    private final ExportService exportService;
+    private final MarchePublicRepository marcheRepository;
 
     public MarcheController(MarcheConsultationService consultationService,
-                            MarcheDetailService detailService) {
+                            MarcheDetailService detailService,
+                            ExportService exportService,
+                            MarchePublicRepository marcheRepository) {
         this.consultationService = consultationService;
         this.detailService = detailService;
+        this.exportService = exportService;
+        this.marcheRepository = marcheRepository;
     }
 
     @Operation(summary = "Liste paginée des marchés publics",
@@ -82,5 +95,25 @@ public class MarcheController {
     @GetMapping("/{id}/avenants")
     public List<AvenantDTO> avenants(@PathVariable Long id) {
         return detailService.getAvenants(id);
+    }
+
+    @Operation(summary = "Exporter les marchés en CSV",
+            description = "Exporte tous les marchés publics au format CSV (CDC 3.7)")
+    @GetMapping("/export")
+    public ResponseEntity<String> exporterCSV() {
+        try {
+            List<MarchePublic> marches = marcheRepository.findAll();
+            String csv = exportService.exporterMarchesCSV(marches);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("text/csv; charset=utf-8"));
+            headers.setContentDispositionFormData("attachment", "marches_publics.csv");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(csv);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

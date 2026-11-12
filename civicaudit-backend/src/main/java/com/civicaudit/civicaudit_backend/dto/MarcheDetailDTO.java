@@ -16,10 +16,12 @@ public class MarcheDetailDTO {
     private String cpvCode;
     private String sourceFilename;
     private boolean aDesAvenants;
+    private List<AlerteDTO> alertes;
 
     public MarcheDetailDTO(Long id, String objet, BigDecimal montant, String acheteurNom,
                            List<TitulaireDTO> titulaires, LocalDate dateNotification, Integer dureeMois,
-                           String procedure, String cpvCode, String sourceFilename, boolean aDesAvenants) {
+                           String procedure, String cpvCode, String sourceFilename, boolean aDesAvenants,
+                           List<AlerteDTO> alertes) {
         this.id = id;
         this.objet = objet;
         this.montant = montant;
@@ -31,6 +33,7 @@ public class MarcheDetailDTO {
         this.cpvCode = cpvCode;
         this.sourceFilename = sourceFilename;
         this.aDesAvenants = aDesAvenants;
+        this.alertes = alertes;
     }
 
     public Long getId() { return id; }
@@ -44,4 +47,5 @@ public class MarcheDetailDTO {
     public String getCpvCode() { return cpvCode; }
     public String getSourceFilename() { return sourceFilename; }
     public boolean isADesAvenants() { return aDesAvenants; }
+    public List<AlerteDTO> getAlertes() { return alertes; }
 }

@@ -39,4 +39,10 @@ export class MarcheService {
   getAvenants(id: number): Observable<Avenant[]> {
     return this.http.get<Avenant[]>(`${this.baseUrl}/${id}/avenants`);
   }
+
+  exporterCSV(): Observable<string> {
+    return this.http.get(`${this.baseUrl}/export`, { 
+      responseType: 'text'
+    });
+  }
 }

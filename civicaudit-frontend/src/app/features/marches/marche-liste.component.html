@@ -1,74 +1,113 @@
 <div class="page">
   <header class="page-header">
-    <p class="eyebrow">Six-Fours-les-Plages · Marchés publics</p>
-    <h1>Où va l'argent public</h1>
-    <p class="subtitle">
-      Consultez les {{ resultat?.totalElements ?? '...' }} marchés publics attribués par la commune depuis 2018.
-      <a routerLink="/statistiques" class="lien-stats">Voir les statistiques →</a>
-    </p>
+    <div class="header-top">
+      <div class="header-text">
+        <p class="eyebrow">Six-Fours-les-Plages · Marchés publics</p>
+        <h1>Où va l'argent public</h1>
+        <p class="subtitle">
+          Consultez les {{ resultat?.totalElements ?? '...' }} marchés publics attribués par la commune depuis 2018.
+        </p>
+      </div>
+      <div class="header-actions">
+        <a routerLink="/statistiques" class="btn-stats">
+          <span class="icon">📊</span>
+          <span class="text">Statistiques</span>
+        </a>
+        <button class="btn-export" (click)="exporterCSV()" [disabled]="exportEnCours">
+          <span class="icon">📥</span>
+          <span class="text" *ngIf="!exportEnCours">Exporter CSV</span>
+          <span class="text" *ngIf="exportEnCours">Export...</span>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <form class="filtres" (ngSubmit)="rechercher()">
-    <input
-      type="text"
-      class="filtre-texte"
-      placeholder="Rechercher un objet ou une entreprise..."
-      [(ngModel)]="filtres.texte"
-      name="texte" />
+  <!-- Barre de recherche améliorée -->
+  <div class="search-section">
+    <form class="search-form" (ngSubmit)="rechercher()">
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Rechercher par objet, entreprise, procédure..."
+          [(ngModel)]="filtres.texte"
+          name="texte" />
+        <button type="button" class="btn-filters" (click)="toggleFilters()">
+          <span class="icon">⚙️</span>
+          Filtres {{ showFilters ? '▲' : '▼' }}
+        </button>
+        <button type="submit" class="btn-search">Rechercher</button>
+      </div>
 
-    <div class="filtres-secondaires">
-      <label>
-        Depuis le
-        <input type="date" [(ngModel)]="filtres.dateDebut" name="dateDebut" />
-      </label>
-      <label>
-        Jusqu'au
-        <input type="date" [(ngModel)]="filtres.dateFin" name="dateFin" />
-      </label>
-      <label>
-        Montant min (€)
-        <input type="number" [(ngModel)]="filtres.montantMin" name="montantMin" />
-      </label>
-      <label>
-        Montant max (€)
-        <input type="number" [(ngModel)]="filtres.montantMax" name="montantMax" />
-      </label>
-      <label>
-        Trier par
-        <select [(ngModel)]="filtres.tri" name="tri">
-          <option value="date">Date (récent → ancien)</option>
-          <option value="montant">Montant (élevé → bas)</option>
-        </select>
-      </label>
-      <button type="submit" class="btn-primary">Filtrer</button>
-    </div>
-  </form>
-
-  <div *ngIf="chargement" class="etat-info">Chargement des marchés...</div>
-  <div *ngIf="erreur" class="etat-erreur">
-    Impossible de charger les marchés. Vérifiez que le serveur backend est bien lancé.
+      <!-- Filtres avancés -->
+      <div class="filters-advanced" *ngIf="showFilters">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label>📅 Date de début</label>
+            <input type="date" [(ngModel)]="filtres.dateDebut" name="dateDebut" />
+          </div>
+          <div class="filter-group">
+            <label>📅 Date de fin</label>
+            <input type="date" [(ngModel)]="filtres.dateFin" name="dateFin" />
+          </div>
+          <div class="filter-group">
+            <label>💰 Montant min (€)</label>
+            <input type="number" [(ngModel)]="filtres.montantMin" name="montantMin" placeholder="0" />
+          </div>
+          <div class="filter-group">
+            <label>💰 Montant max (€)</label>
+            <input type="number" [(ngModel)]="filtres.montantMax" name="montantMax" placeholder="Illimité" />
+          </div>
+          <div class="filter-group">
+            <label>🔄 Trier par</label>
+            <select [(ngModel)]="filtres.tri" name="tri">
+              <option value="date">Date (récent → ancien)</option>
+              <option value="montant">Montant (élevé → bas)</option>
+            </select>
+          </div>
+        </div>
+        <div class="filters-actions">
+          <button type="button" class="btn-reset" (click)="resetFilters()">Réinitialiser</button>
+          <button type="submit" class="btn-apply">Appliquer les filtres</button>
+        </div>
+      </div>
+    </form>
   </div>
 
-  <table class="table-marches" *ngIf="resultat && !chargement">
-    <thead>
-      <tr>
-        <th>Objet</th>
-        <th>Titulaire</th>
-        <th class="col-montant">Montant</th>
-        <th>Date</th>
-        <th>Procédure</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let marche of resultat.content" [routerLink]="['/marches', marche.id]" class="ligne-marche">
-        <td class="col-objet">{{ marche.objet }}</td>
-        <td>{{ marche.titulairePrincipal }}</td>
-        <td class="col-montant montant">{{ formatMontant(marche.montant) }}</td>
-        <td class="col-date">{{ formatDate(marche.dateNotification) }}</td>
-        <td><span class="badge-procedure">{{ marche.procedure }}</span></td>
-      </tr>
-    </tbody>
-  </table>
+  <div *ngIf="chargement" class="etat-info">
+    <div class="loader"></div>
+    <p>Chargement des marchés...</p>
+  </div>
+  
+  <div *ngIf="erreur" class="etat-erreur">
+    ⚠️ Impossible de charger les marchés. Vérifiez que le serveur backend est bien lancé.
+  </div>
+
+  <!-- Liste des marchés en cards responsives -->
+  <div class="marches-container" *ngIf="resultat && !chargement">
+    <div class="marches-list">
+      <div *ngFor="let marche of resultat.content" class="marche-card" [routerLink]="['/marches', marche.id]">
+        <div class="card-header">
+          <h3 class="card-title">{{ marche.objet }}</h3>
+          <span class="card-montant">{{ formatMontant(marche.montant) }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-info">
+            <span class="info-item">
+              <span class="info-icon">🏢</span>
+              <span class="info-text">{{ marche.titulairePrincipal }}</span>
+            </span>
+            <span class="info-item">
+              <span class="info-icon">📅</span>
+              <span class="info-text">{{ formatDate(marche.dateNotification) }}</span>
+            </span>
+          </div>
+          <span class="badge-procedure">{{ marche.procedure }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="pagination" *ngIf="resultat && resultat.totalPages > 1">
     <button (click)="changerPage(resultat.number - 1)" [disabled]="resultat.number === 0">← Précédent</button>

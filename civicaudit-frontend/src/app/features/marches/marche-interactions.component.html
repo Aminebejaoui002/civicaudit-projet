@@ -1,0 +1,166 @@
+<div class="interactions">
+  <!-- Section Commentaires -->
+  <div class="section">
+    <div class="section-header">
+      <h2>💬 Commentaires ({{ commentaires.length }})</h2>
+      <button 
+        *ngIf="(authService.currentUser$ | async) && !afficherFormulaireCommentaire"
+        (click)="afficherFormulaireCommentaire = true"
+        class="btn-primary">
+        Ajouter un commentaire
+      </button>
+      <a 
+        *ngIf="!(authService.currentUser$ | async)"
+        routerLink="/login"
+        [queryParams]="{returnUrl: '/marches/' + marcheId}"
+        class="btn-link">
+        Connectez-vous pour commenter
+      </a>
+    </div>
+
+    <!-- Formulaire nouveau commentaire -->
+    <div *ngIf="afficherFormulaireCommentaire" class="formulaire">
+      <textarea
+        [(ngModel)]="nouveauCommentaire"
+        placeholder="Votre commentaire constructif (minimum 10 caractères)..."
+        maxlength="1000"
+        rows="4"
+        class="textarea"></textarea>
+      <div class="char-counter" [class.warning]="nouveauCommentaire.length < 10">
+        {{ nouveauCommentaire.length }} / 1000 caractères
+        <span *ngIf="nouveauCommentaire.length < 10" class="min-text">(min. 10)</span>
+      </div>
+      <div class="formulaire-actions">
+        <button (click)="ajouterCommentaire()" class="btn-primary" [disabled]="nouveauCommentaire.trim().length < 10">
+          Publier
+        </button>
+        <button (click)="afficherFormulaireCommentaire = false; nouveauCommentaire = ''" class="btn-secondary">
+          Annuler
+        </button>
+      </div>
+      <p class="note">
+        ℹ️ Votre commentaire sera modéré avant publication. Soyez constructif et respectueux.
+      </p>
+    </div>
+
+    <!-- Liste des commentaires -->
+    <div class="liste">
+      <div *ngIf="commentaires.length === 0" class="vide">
+        Aucun commentaire pour le moment. Soyez le premier à partager votre avis !
+      </div>
+
+      <div *ngFor="let commentaire of commentaires" class="item commentaire-item">
+        <div class="item-header">
+          <span class="auteur">{{ commentaire.auteurEmail }}</span>
+          <span class="date">{{ formatDate(commentaire.dateCreation) }}</span>
+          <span class="badge" [ngClass]="getStatutClass(commentaire.statut)">
+            {{ commentaire.statut === 'EN_ATTENTE' ? 'En modération' : 
+               commentaire.statut === 'APPROUVE' ? 'Approuvé' : 'Rejeté' }}
+          </span>
+        </div>
+        <p class="contenu">{{ commentaire.contenu }}</p>
+        <button 
+          *ngIf="commentaire.estAuteur"
+          (click)="supprimerCommentaire(commentaire.id)"
+          class="btn-supprimer">
+          🗑️ Supprimer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section Signalements -->
+  <div class="section">
+    <div class="section-header">
+      <h2>⚠️ Signalements ({{ signalements.length }})</h2>
+      <button 
+        *ngIf="(authService.currentUser$ | async) && !afficherFormulaireSignalement"
+        (click)="afficherFormulaireSignalement = true"
+        class="btn-primary">
+        Signaler une anomalie
+      </button>
+      <a 
+        *ngIf="!(authService.currentUser$ | async)"
+        routerLink="/login"
+        [queryParams]="{returnUrl: '/marches/' + marcheId}"
+        class="btn-link">
+        Connectez-vous pour signaler
+      </a>
+    </div>
+
+    <!-- Formulaire nouveau signalement -->
+    <div *ngIf="afficherFormulaireSignalement" class="formulaire">
+      <select
+        [(ngModel)]="nouveauSignalement.categorie"
+        class="select">
+        <option *ngFor="let cat of categories" [value]="cat">
+          {{ categoriesLabels[cat] }}
+        </option>
+      </select>
+      
+      <textarea
+        [(ngModel)]="nouveauSignalement.description"
+        placeholder="Décrivez l'anomalie observée (minimum 20 caractères)..."
+        maxlength="1000"
+        rows="4"
+        class="textarea"></textarea>
+      
+      <div class="char-counter" [class.warning]="nouveauSignalement.description.length < 20">
+        {{ nouveauSignalement.description.length }} / 1000 caractères
+        <span *ngIf="nouveauSignalement.description.length < 20" class="min-text">(min. 20)</span>
+      </div>
+      
+      <div class="formulaire-actions">
+        <button 
+          (click)="ajouterSignalement()" 
+          class="btn-primary"
+          [disabled]="nouveauSignalement.description.trim().length < 20">
+          Signaler
+        </button>
+        <button 
+          (click)="afficherFormulaireSignalement = false; nouveauSignalement.description = ''" 
+          class="btn-secondary">
+          Annuler
+        </button>
+      </div>
+      <p class="note">
+        ℹ️ Vous ne pouvez signaler un marché qu'une seule fois par catégorie. Soyez précis et factuel.
+      </p>
+    </div>
+
+    <!-- Liste des signalements -->
+    <div class="liste">
+      <div *ngIf="signalements.length === 0" class="vide">
+        Aucun signalement pour ce marché.
+      </div>
+
+      <div *ngFor="let signalement of signalements" class="item signalement-item">
+        <div class="item-header">
+          <span class="categorie-badge">{{ categoriesLabels[signalement.categorie] }}</span>
+          <span class="badge" [ngClass]="getStatutClass(signalement.statut)">
+            {{ statutsLabels[signalement.statut] }}
+          </span>
+        </div>
+        <p class="contenu">{{ signalement.description }}</p>
+        <div class="item-footer">
+          <span class="auteur">Par {{ signalement.auteurEmail }}</span>
+          <span class="date">{{ formatDate(signalement.dateCreation) }}</span>
+          <div class="votes">
+            <button 
+              *ngIf="(authService.currentUser$ | async) && !signalement.aVote"
+              (click)="voterSignalement(signalement.id)"
+              class="btn-vote">
+              👍 Je confirme ({{ signalement.nombreVotes }})
+            </button>
+            <span *ngIf="signalement.aVote" class="vote-confirme">
+              ✅ Vous avez confirmé ({{ signalement.nombreVotes }})
+            </span>
+            <span *ngIf="!(authService.currentUser$ | async)" class="vote-info">
+              👍 {{ signalement.nombreVotes }} confirmation(s)
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
