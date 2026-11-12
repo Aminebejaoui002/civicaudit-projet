@@ -25,6 +25,13 @@ public class ImportRunner implements CommandLineRunner {
     @Value("${civicaudit.import.file:}")
     private String cheminFichier;
 
+    @Value("${civicaudit.admin.email:admin@civicaudit.tn}")
+    private String adminEmail;
+
+    // Mot de passe initial de l'admin : à fournir par variable d'environnement ADMIN_PASSWORD en dehors du poste de dev
+    @Value("${civicaudit.admin.password:}")
+    private String adminPassword;
+
     public ImportRunner(ImportService importService, AlerteService alerteService, 
                         UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.importService = importService;
@@ -46,30 +53,31 @@ public class ImportRunner implements CommandLineRunner {
 
         log.info("=== Rapport d'import ===");
         log.info("Lignes lues        : {}", rapport.lignesLues);
+        log.info("Hors périmètre     : {}", rapport.lignesHorsPerimetre);
         log.info("Marchés importés   : {}", rapport.marchesImportes);
-        log.info("Déjà existants     : {}", rapport.marchesIgnoresDejaExistants);
+        log.info("Marchés mis à jour : {}", rapport.marchesMisAJour);
         log.info("Marchés rejetés    : {}", rapport.marchesRejetes);
         rapport.raisonsRejet.forEach(r -> log.warn("  Rejet : {}", r));
 
         // Générer les alertes après l'import (CDC 3.5)
         log.info("=== Génération des alertes automatiques ===");
-        alerteService.genererAlertes();
-        log.info("Alertes générées avec succès");
+        int nombreAlertes = alerteService.genererAlertes();
+        log.info("{} alertes générées", nombreAlertes);
     }
     
     private void creerAdminParDefaut() {
-        String adminEmail = "admin@civicaudit.tn";
-        
+        if (adminPassword == null || adminPassword.isBlank()) {
+            log.info("Aucun mot de passe admin configuré (civicaudit.admin.password) : pas de création de compte admin");
+            return;
+        }
         if (!userRepository.existsByEmail(adminEmail)) {
             User admin = new User();
             admin.setEmail(adminEmail);
-            admin.setPasswordHash(passwordEncoder.encode("admin123"));
+            admin.setPasswordHash(passwordEncoder.encode(adminPassword));
             admin.setRole(User.Role.ADMIN);
             userRepository.save(admin);
             log.info("=== Utilisateur ADMIN créé ===");
-            log.info("Email: {}", adminEmail);
-            log.info("Password: admin123");
-            log.info("⚠️  IMPORTANT: Changez ce mot de passe en production!");
+            log.info("Email: {} (mot de passe : valeur de civicaudit.admin.password)", adminEmail);
         } else {
             log.info("Utilisateur admin déjà existant");
         }
