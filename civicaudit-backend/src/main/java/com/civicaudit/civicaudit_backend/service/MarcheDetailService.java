@@ -78,7 +78,7 @@ public class MarcheDetailService {
                 alertes
         );
         dto.setCategorieCpvLibelle(cpvLibelleService.libelle(marche.getCpvCode()));
-        dto.setSourceUrl(marche.getSourceUrl() == null ? ImportMarcheWriter.SOURCE_URL_DEFAUT : marche.getSourceUrl());
+        dto.setSourceUrl(ImportMarcheWriter.urlSource(marche.getSourceUrl()));
         dto.setNombreCommentaires(commentaireRepository.countByMarcheIdAndStatutAndSupprimeFalse(
                 marcheId, Commentaire.Statut.APPROUVE));
         dto.setNombreSignalements(signalementRepository.countByMarcheId(marcheId));

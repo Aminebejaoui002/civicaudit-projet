@@ -1,8 +1,8 @@
 // Les noms de champs correspondent exactement à StatistiquesDTO / TopFournisseurDTO côté backend
 export interface Statistiques {
-  montantTotal: number;
-  nombreMarches: number;
-  nombreFournisseurs: number;
+  montantTotalDepenses: number;
+  nombreTotalMarches: number;
+  nombreFournisseursUniques: number;
   montantParAnnee: { [annee: string]: number };
   topFournisseurs: TopFournisseur[];
   repartitionParProcedure: { [procedure: string]: number };

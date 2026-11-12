@@ -3,6 +3,7 @@ package com.civicaudit.civicaudit_backend.dto;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
@@ -17,6 +18,8 @@ public class RegisterRequest {
     private String password;
 
     // Consentement RGPD explicite : case à cocher non pré-cochée côté frontend (CDC section 4)
+    // @NotNull est indispensable : @AssertTrue considère une valeur absente (null) comme valide
+    @NotNull(message = "Vous devez accepter la politique de confidentialité")
     @AssertTrue(message = "Vous devez accepter la politique de confidentialité")
     private Boolean consentementRgpd;
 

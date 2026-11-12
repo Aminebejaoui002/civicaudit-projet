@@ -108,8 +108,7 @@ public class ImportMarcheWriter {
 
         String sourceFile = valeur(premiere, "sourceFile");
         marche.setSourceFilename(sourceFile != null ? sourceFile : nomFichierImport);
-        String sourceDataset = valeur(premiere, "sourceDataset");
-        marche.setSourceUrl(sourceDataset != null && sourceDataset.startsWith("http") ? sourceDataset : SOURCE_URL_DEFAUT);
+        marche.setSourceUrl(urlSource(valeur(premiere, "sourceDataset")));
 
         // 4. Titulaires : un même titulaire n'est lié qu'une fois, quel que soit le nombre de lignes
         Map<String, Titulaire> titulairesUniques = new LinkedHashMap<>();
@@ -174,6 +173,14 @@ public class ImportMarcheWriter {
         t.setDepartementCode(valeur(ligne, "titulaire_departement_code"));
         t.setDepartementNom(valeur(ligne, "titulaire_departement_nom"));
         return titulaireRepository.save(t);
+    }
+
+    /**
+     * Lien vers la source affiché au citoyen : l'URL fournie si c'en est une, sinon la page data.gouv.fr
+     * du jeu de données (les anciens imports stockaient un code de source comme « pes_marche_legacy »).
+     */
+    public static String urlSource(String valeur) {
+        return valeur != null && valeur.startsWith("http") ? valeur : SOURCE_URL_DEFAUT;
     }
 
     private String montantBrut(CSVRecord ligne) {

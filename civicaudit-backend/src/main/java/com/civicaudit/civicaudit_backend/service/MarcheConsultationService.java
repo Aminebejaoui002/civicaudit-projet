@@ -124,7 +124,7 @@ public class MarcheConsultationService {
         );
         dto.setCpvCode(marche.getCpvCode());
         dto.setCategorieCpvLibelle(cpvLibelleService.libelle(marche.getCpvCode()));
-        dto.setSourceUrl(marche.getSourceUrl());
+        dto.setSourceUrl(ImportMarcheWriter.urlSource(marche.getSourceUrl()));
         return dto;
     }
 }
