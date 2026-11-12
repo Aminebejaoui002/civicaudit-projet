@@ -2,9 +2,8 @@ package com.civicaudit.civicaudit_backend.controller;
 
 import com.civicaudit.civicaudit_backend.dto.AvenantDTO;
 import com.civicaudit.civicaudit_backend.dto.MarcheDetailDTO;
+import com.civicaudit.civicaudit_backend.dto.MarcheFiltre;
 import com.civicaudit.civicaudit_backend.dto.MarcheListeDTO;
-import com.civicaudit.civicaudit_backend.entity.MarchePublic;
-import com.civicaudit.civicaudit_backend.repository.MarchePublicRepository;
 import com.civicaudit.civicaudit_backend.service.ExportService;
 import com.civicaudit.civicaudit_backend.service.MarcheConsultationService;
 import com.civicaudit.civicaudit_backend.service.MarcheDetailService;
@@ -13,6 +12,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/marches")
@@ -31,16 +32,13 @@ public class MarcheController {
     private final MarcheConsultationService consultationService;
     private final MarcheDetailService detailService;
     private final ExportService exportService;
-    private final MarchePublicRepository marcheRepository;
 
     public MarcheController(MarcheConsultationService consultationService,
                             MarcheDetailService detailService,
-                            ExportService exportService,
-                            MarchePublicRepository marcheRepository) {
+                            ExportService exportService) {
         this.consultationService = consultationService;
         this.detailService = detailService;
         this.exportService = exportService;
-        this.marcheRepository = marcheRepository;
     }
 
     @Operation(summary = "Liste paginée des marchés publics",
@@ -78,8 +76,15 @@ public class MarcheController {
             @Parameter(description = "Type de procédure (ex: 'Appel d'offres ouvert')")
             @RequestParam(required = false) String procedure
     ) {
-        return consultationService.rechercher(page, taille, tri, dateDebut, dateFin,
-                montantMin, montantMax, categorieCpv, texte, procedure);
+        return consultationService.rechercher(page, taille, tri,
+                new MarcheFiltre(dateDebut, dateFin, montantMin, montantMax, categorieCpv, texte, procedure, null));
+    }
+
+    @Operation(summary = "Valeurs disponibles pour les filtres",
+            description = "Grandes catégories CPV (code + libellé) et types de procédure présents dans les données importées.")
+    @GetMapping("/filtres")
+    public Map<String, Object> valeursFiltres() {
+        return consultationService.valeursFiltres();
     }
 
     @Operation(summary = "Fiche détaillée d'un marché",
@@ -97,23 +102,28 @@ public class MarcheController {
         return detailService.getAvenants(id);
     }
 
-    @Operation(summary = "Exporter les marchés en CSV",
-            description = "Exporte tous les marchés publics au format CSV (CDC 3.7)")
-    @GetMapping("/export")
-    public ResponseEntity<String> exporterCSV() {
-        try {
-            List<MarchePublic> marches = marcheRepository.findAll();
-            String csv = exportService.exporterMarchesCSV(marches);
-            
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType("text/csv; charset=utf-8"));
-            headers.setContentDispositionFormData("attachment", "marches_publics.csv");
-            
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .body(csv);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
-        }
+    @Operation(summary = "Exporter en CSV la liste filtrée",
+            description = "Exporte exactement les marchés correspondant aux filtres actifs (mêmes paramètres et même tri "
+                    + "que la liste), avec en plus le code CPV brut et le lien source (CDC 3.7).")
+    @GetMapping(value = "/export", produces = "text/csv")
+    public ResponseEntity<byte[]> exporterCSV(
+            @RequestParam(required = false) String tri,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @RequestParam(required = false) BigDecimal montantMin,
+            @RequestParam(required = false) BigDecimal montantMax,
+            @RequestParam(required = false) String categorieCpv,
+            @RequestParam(required = false) String texte,
+            @RequestParam(required = false) String procedure
+    ) throws IOException {
+        MarcheFiltre filtre = new MarcheFiltre(dateDebut, dateFin, montantMin, montantMax,
+                categorieCpv, texte, procedure, null);
+        byte[] csv = exportService.exporterMarchesCSV(consultationService.rechercherTout(tri, filtre));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv; charset=UTF-8"));
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("marches_publics_" + LocalDate.now() + ".csv").build());
+        return ResponseEntity.ok().headers(headers).body(csv);
     }
 }

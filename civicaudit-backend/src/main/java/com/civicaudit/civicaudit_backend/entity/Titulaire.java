@@ -3,7 +3,7 @@ package com.civicaudit.civicaudit_backend.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "titulaire")
+@Table(name = "titulaire", indexes = @Index(name = "idx_titulaire_nom", columnList = "nom"))
 public class Titulaire {
 
     @Id

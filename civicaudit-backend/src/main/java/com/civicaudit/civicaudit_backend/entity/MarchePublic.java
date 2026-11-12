@@ -7,7 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "marche_public")
+// Index SQL sur les colonnes filtrées et triées (CDC 4 : réponse < 1 s sur la recherche/filtrage)
+@Table(name = "marche_public", indexes = {
+        @Index(name = "idx_marche_date_notification", columnList = "date_notification"),
+        @Index(name = "idx_marche_montant", columnList = "montant"),
+        @Index(name = "idx_marche_cpv_code", columnList = "cpv_code")
+})
 public class MarchePublic {
 
     @Id
@@ -51,7 +56,8 @@ public class MarchePublic {
     @JoinTable(
             name = "marche_titulaire",
             joinColumns = @JoinColumn(name = "marche_id"),
-            inverseJoinColumns = @JoinColumn(name = "titulaire_id")
+            inverseJoinColumns = @JoinColumn(name = "titulaire_id"),
+            indexes = @Index(name = "idx_marche_titulaire_titulaire", columnList = "titulaire_id")
     )
 
     private List<Titulaire> titulaires = new ArrayList<>();

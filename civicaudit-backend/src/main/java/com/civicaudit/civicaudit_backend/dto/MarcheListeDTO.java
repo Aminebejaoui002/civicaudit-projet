@@ -27,4 +27,18 @@ public class MarcheListeDTO {
     public String getTitulairePrincipal() { return titulairePrincipal; }
     public LocalDate getDateNotification() { return dateNotification; }
     public String getProcedure() { return procedure; }
+
+    // --- Champs complémentaires (catégorie CPV lisible, code brut et source pour l'export CSV) ---
+    private String cpvCode;
+    private String categorieCpvLibelle;
+    private String sourceUrl;
+
+    public String getCpvCode() { return cpvCode; }
+    public void setCpvCode(String cpvCode) { this.cpvCode = cpvCode; }
+
+    public String getCategorieCpvLibelle() { return categorieCpvLibelle; }
+    public void setCategorieCpvLibelle(String categorieCpvLibelle) { this.categorieCpvLibelle = categorieCpvLibelle; }
+
+    public String getSourceUrl() { return sourceUrl; }
+    public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
 }

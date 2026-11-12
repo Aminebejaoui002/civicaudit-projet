@@ -20,13 +20,16 @@ public class StatistiquesService {
     private final MarchePublicRepository marchePublicRepository;
     private final TitulaireRepository titulaireRepository;
     private final MontantActuelService montantActuelService;
+    private final CpvLibelleService cpvLibelleService;
 
     public StatistiquesService(MarchePublicRepository marchePublicRepository,
                                TitulaireRepository titulaireRepository,
-                               MontantActuelService montantActuelService) {
+                               MontantActuelService montantActuelService,
+                               CpvLibelleService cpvLibelleService) {
         this.marchePublicRepository = marchePublicRepository;
         this.titulaireRepository = titulaireRepository;
         this.montantActuelService = montantActuelService;
+        this.cpvLibelleService = cpvLibelleService;
     }
 
     public StatistiquesDTO calculer() {
@@ -67,11 +70,13 @@ public class StatistiquesService {
                         m -> m.getProcedure() == null ? NON_RENSEIGNE : m.getProcedure(),
                         Collectors.counting()));
 
-        // Répartition par grande catégorie CPV (2 premiers chiffres)
+        // Répartition par grande catégorie CPV (2 premiers chiffres), clé = "45 - Travaux de construction"
         Map<String, Long> parCpv = marches.stream()
                 .collect(Collectors.groupingBy(
                         m -> (m.getCpvCode() == null || m.getCpvCode().length() < 2)
-                                ? NON_RENSEIGNE : m.getCpvCode().substring(0, 2),
+                                ? NON_RENSEIGNE
+                                : m.getCpvCode().substring(0, 2) + " - " + cpvLibelleService.libelle(m.getCpvCode()),
+                        TreeMap::new,
                         Collectors.counting()));
 
         return new StatistiquesDTO(montantTotal, marches.size(), nombreFournisseurs,

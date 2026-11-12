@@ -6,8 +6,11 @@ import com.civicaudit.civicaudit_backend.dto.MarcheDetailDTO;
 import com.civicaudit.civicaudit_backend.dto.TitulaireDTO;
 import com.civicaudit.civicaudit_backend.entity.Alerte;
 import com.civicaudit.civicaudit_backend.entity.Avenant;
+import com.civicaudit.civicaudit_backend.entity.Commentaire;
 import com.civicaudit.civicaudit_backend.entity.MarchePublic;
 import com.civicaudit.civicaudit_backend.repository.AvenantRepository;
+import com.civicaudit.civicaudit_backend.repository.CommentaireRepository;
+import com.civicaudit.civicaudit_backend.repository.SignalementRepository;
 import com.civicaudit.civicaudit_backend.repository.MarchePublicRepository;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +27,22 @@ public class MarcheDetailService {
     private final MarchePublicRepository marchePublicRepository;
     private final AvenantRepository avenantRepository;
     private final AlerteService alerteService;
+    private final CpvLibelleService cpvLibelleService;
+    private final CommentaireRepository commentaireRepository;
+    private final SignalementRepository signalementRepository;
 
-    public MarcheDetailService(MarchePublicRepository marchePublicRepository, 
+    public MarcheDetailService(MarchePublicRepository marchePublicRepository,
                               AvenantRepository avenantRepository,
-                              AlerteService alerteService) {
+                              AlerteService alerteService,
+                              CpvLibelleService cpvLibelleService,
+                              CommentaireRepository commentaireRepository,
+                              SignalementRepository signalementRepository) {
         this.marchePublicRepository = marchePublicRepository;
         this.avenantRepository = avenantRepository;
         this.alerteService = alerteService;
+        this.cpvLibelleService = cpvLibelleService;
+        this.commentaireRepository = commentaireRepository;
+        this.signalementRepository = signalementRepository;
     }
 
     public MarcheDetailDTO getDetail(Long marcheId) {
@@ -51,7 +63,7 @@ public class MarcheDetailService {
                 .map(a -> new AlerteDTO(a.getId(), a.getType().name(), a.getValeurCalculee(), a.getDateGeneration()))
                 .collect(Collectors.toList());
 
-        return new MarcheDetailDTO(
+        MarcheDetailDTO dto = new MarcheDetailDTO(
                 marche.getId(),
                 marche.getObjet(),
                 montantActuel,
@@ -65,6 +77,12 @@ public class MarcheDetailService {
                 !avenants.isEmpty(),
                 alertes
         );
+        dto.setCategorieCpvLibelle(cpvLibelleService.libelle(marche.getCpvCode()));
+        dto.setSourceUrl(marche.getSourceUrl() == null ? ImportMarcheWriter.SOURCE_URL_DEFAUT : marche.getSourceUrl());
+        dto.setNombreCommentaires(commentaireRepository.countByMarcheIdAndStatutAndSupprimeFalse(
+                marcheId, Commentaire.Statut.APPROUVE));
+        dto.setNombreSignalements(signalementRepository.countByMarcheId(marcheId));
+        return dto;
     }
 
     public List<AvenantDTO> getAvenants(Long marcheId) {

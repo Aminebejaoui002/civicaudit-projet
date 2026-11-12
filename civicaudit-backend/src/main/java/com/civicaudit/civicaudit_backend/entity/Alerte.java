@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "alerte")
+@Table(name = "alerte", indexes = @Index(name = "idx_alerte_marche", columnList = "marche_id"))
 public class Alerte {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

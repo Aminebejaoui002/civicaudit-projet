@@ -48,4 +48,22 @@ public class MarcheDetailDTO {
     public String getSourceFilename() { return sourceFilename; }
     public boolean isADesAvenants() { return aDesAvenants; }
     public List<AlerteDTO> getAlertes() { return alertes; }
+
+    // --- Champs complémentaires (CDC 3.2.2) ---
+    private String categorieCpvLibelle;   // libellé de la grande catégorie CPV, pas seulement le code
+    private String sourceUrl;             // lien vers le jeu de données source (traçabilité, CDC 4)
+    private long nombreCommentaires;      // commentaires approuvés
+    private long nombreSignalements;
+
+    public String getCategorieCpvLibelle() { return categorieCpvLibelle; }
+    public void setCategorieCpvLibelle(String categorieCpvLibelle) { this.categorieCpvLibelle = categorieCpvLibelle; }
+
+    public String getSourceUrl() { return sourceUrl; }
+    public void setSourceUrl(String sourceUrl) { this.sourceUrl = sourceUrl; }
+
+    public long getNombreCommentaires() { return nombreCommentaires; }
+    public void setNombreCommentaires(long nombreCommentaires) { this.nombreCommentaires = nombreCommentaires; }
+
+    public long getNombreSignalements() { return nombreSignalements; }
+    public void setNombreSignalements(long nombreSignalements) { this.nombreSignalements = nombreSignalements; }
 }

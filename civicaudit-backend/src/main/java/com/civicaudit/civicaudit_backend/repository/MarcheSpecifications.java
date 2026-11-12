@@ -53,4 +53,14 @@ public class MarcheSpecifications {
             );
         };
     }
+
+    /** Marchés remportés par un titulaire donné (vue fournisseur, CDC 3.2.3). */
+    public static Specification<MarchePublic> titulaire(String titulaireId) {
+        return (root, query, cb) -> {
+            if (titulaireId == null || titulaireId.isBlank()) return null;
+            query.distinct(true);
+            var joinTitulaires = root.join("titulaires", jakarta.persistence.criteria.JoinType.INNER);
+            return cb.equal(joinTitulaires.get("id"), titulaireId);
+        };
+    }
 }
