@@ -183,6 +183,12 @@ public class ImportMarcheWriter {
         return valeur != null && valeur.startsWith("http") ? valeur : SOURCE_URL_DEFAUT;
     }
 
+    /** Lien le plus précis vers la source d'un marché : le fichier DECP s'il est publié sous forme d'URL, sinon le jeu de données. */
+    public static String lienSource(MarchePublic marche) {
+        String fichier = marche.getSourceFilename();
+        return fichier != null && fichier.startsWith("http") ? fichier : urlSource(marche.getSourceUrl());
+    }
+
     private String montantBrut(CSVRecord ligne) {
         String m = valeur(ligne, "montant_rationalise");
         return m != null ? m : valeur(ligne, "montant");

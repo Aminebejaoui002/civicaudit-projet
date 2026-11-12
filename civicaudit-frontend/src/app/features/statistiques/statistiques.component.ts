@@ -180,30 +180,34 @@ export class StatistiquesComponent implements OnInit, AfterViewInit, OnDestroy {
     // Graphique répartition CPV
     const canvasCpv = document.getElementById('chartCpv') as HTMLCanvasElement;
     if (canvasCpv && this.stats.repartitionParCategorieCpv) {
+      // 10 catégories les plus fréquentes + « Autres », en barres horizontales pour des libellés lisibles
       const entrees = Object.entries(this.stats.repartitionParCategorieCpv).sort((a, b) => b[1] - a[1]);
-      const cpvs = entrees.map(e => e[0]);
-      const valeurs = entrees.map(e => e[1]);
-      
+      const top = entrees.slice(0, 10);
+      const reste = entrees.slice(10).reduce((somme, e) => somme + e[1], 0);
+      if (reste > 0) top.push(['Autres catégories', reste]);
+
       this.charts.push(new Chart(canvasCpv, {
         type: 'bar',
         data: {
-          labels: cpvs.map(c => this.truncateText(c, 40)),
+          labels: top.map(e => this.truncateText(e[0], 45)),
           datasets: [{
             label: 'Nombre de marchés',
-            data: valeurs,
+            data: top.map(e => e[1]),
             backgroundColor: 'rgba(139, 92, 246, 0.8)',
             borderColor: 'rgb(139, 92, 246)',
             borderWidth: 1
           }]
         },
         options: {
+          indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            tooltip: { callbacks: { title: (items) => top[items[0].dataIndex][0] } }
           },
           scales: {
-            y: { beginAtZero: true }
+            x: { beginAtZero: true }
           }
         }
       }));

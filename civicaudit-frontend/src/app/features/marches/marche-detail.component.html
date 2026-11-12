@@ -124,7 +124,7 @@
           publiées en open data conformément à la réglementation.
         </p>
         <p class="source-fichier">
-          Source : DECP, data.gouv.fr — fichier {{ marche.sourceFilename }}
+          Source : DECP, data.gouv.fr<span *ngIf="!marche.sourceFilename.startsWith('http')"> — fichier {{ marche.sourceFilename }}</span>
         </p>
         <a [href]="marche.sourceUrl" target="_blank" rel="noopener noreferrer" class="btn-secondary">
           Consulter le jeu de données source ↗
