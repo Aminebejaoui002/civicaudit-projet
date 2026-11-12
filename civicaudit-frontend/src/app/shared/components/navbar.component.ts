@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, Router } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, RouterLinkActive],
   template: `
     <nav class="navbar">
       <div class="navbar-content">
@@ -17,12 +17,15 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="navbar-links">
           <a routerLink="/marches" routerLinkActive="active">Marchés</a>
           <a routerLink="/statistiques" routerLinkActive="active">Statistiques</a>
-          <a *ngIf="authService.currentUser$ | async" routerLink="/moderation" routerLinkActive="active">Modération</a>
-          
+          <ng-container *ngIf="authService.currentUser$ | async as user">
+            <a *ngIf="authService.estModerateur(user)" routerLink="/moderation" routerLinkActive="active">Modération</a>
+            <a *ngIf="authService.estAdmin(user)" routerLink="/admin/import" routerLinkActive="active">Import DECP</a>
+          </ng-container>
+
           <div class="navbar-auth">
             <ng-container *ngIf="(authService.currentUser$ | async) as user; else notConnected">
-              <span class="user-info">{{ user.email }}</span>
-              <button (click)="logout()" class="btn-logout">Déconnexion</button>
+              <a routerLink="/mon-compte" routerLinkActive="active" class="user-info" title="Mon compte">{{ user.email }}</a>
+              <button type="button" (click)="logout()" class="btn-logout">Déconnexion</button>
             </ng-container>
             <ng-template #notConnected>
               <a routerLink="/login" class="btn-login">Connexion</a>
@@ -130,10 +133,11 @@ import { AuthService } from '../../core/services/auth.service';
       }
     }
     
+    .navbar-links a.btn-register,
     .btn-register {
       padding: 0.5rem 1.25rem;
       background: var(--primary);
-      color: white;
+      color: #fff;
       border-radius: 8px;
       font-weight: 500;
       font-size: 0.875rem;
@@ -176,6 +180,6 @@ export class NavbarComponent {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/register']);
+    this.router.navigate(['/marches']);
   }
 }

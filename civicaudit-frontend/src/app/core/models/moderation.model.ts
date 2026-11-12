@@ -1,7 +1,10 @@
+import { SignalementCategorie, SignalementStatut } from './signalement.model';
+
 export interface CommentaireModeration {
   id: number;
   contenu: string;
   auteurNom: string;
+  auteurEmail: string;
   dateCreation: string;
   marcheId: number;
   marcheObjet: string;
@@ -9,12 +12,13 @@ export interface CommentaireModeration {
 
 export interface SignalementModeration {
   id: number;
-  categorie: string;
+  categorie: SignalementCategorie;
   description: string;
   auteurNom: string;
+  auteurEmail: string;
   dateCreation: string;
   marcheId: number;
   marcheObjet: string;
-  statut: 'EN_ATTENTE' | 'EN_DISCUSSION' | 'RESOLU' | 'REJETE';
-  nbVotes: number;
+  statut: SignalementStatut;
+  nombreVotes: number;
 }

@@ -1,16 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MarcheService } from '../../core/services/marche.service';
 import { MarcheDetail, Avenant, Alerte } from '../../core/models/marche.model';
-import { getAlerteMessage, getAlerteTypeLabel } from '../../core/models/alerte.model';
+import { ALERTE_AVERTISSEMENT, getAlerteMessage, getAlerteTypeLabel } from '../../core/models/alerte.model';
 import { MarcheInteractionsComponent } from './marche-interactions.component';
 
 @Component({
   selector: 'app-marche-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, MarcheInteractionsComponent],
+  imports: [CommonModule, RouterLink, MarcheInteractionsComponent],
   templateUrl: './marche-detail.component.html',
   styleUrl: './marche-detail.component.scss'
 })
@@ -20,6 +19,7 @@ export class MarcheDetailComponent implements OnInit {
   chargement = true;
   erreur = false;
   afficherAvenants = false;
+  readonly avertissementAlertes = ALERTE_AVERTISSEMENT;
 
   constructor(
     private route: ActivatedRoute,
@@ -90,65 +90,41 @@ export class MarcheDetailComponent implements OnInit {
     });
   }
 
+  /**
+   * Explication en une phrase de chaque type de procédure pour un non-initié (CDC 3.2.2).
+   * Correspondance par mots-clés car les libellés DECP varient selon les plateformes de publication.
+   */
   getProcedureExplication(procedure: string): string {
-    const explications: { [key: string]: string } = {
-      'Procédure adaptée': 'Procédure simplifiée pour les marchés de faible montant, permettant à l\'acheteur d\'adapter les modalités de mise en concurrence.',
-      'Appel d\'offres ouvert': 'Procédure formelle où tout opérateur économique peut remettre une offre. La plus transparente et concurrentielle.',
-      'Appel d\'offres restreint': 'Seuls les candidats présélectionnés peuvent remettre une offre.',
-      'Marché négocié sans publicité': 'Marché attribué sans mise en concurrence préalable, autorisé dans des cas exceptionnels prévus par la loi.',
-      'Dialogue compétitif': 'Utilisé pour les projets complexes, permet un dialogue avec les candidats avant de leur demander une offre finale.'
-    };
-    return explications[procedure] || 'Type de procédure utilisée pour attribuer ce marché public.';
-  }
-
-  getCpvLibelle(code: string): string {
-    // Extraction des 2 premiers chiffres pour la catégorie
-    const categorie = code.substring(0, 2);
-    const categories: { [key: string]: string } = {
-      '03': 'Produits de l\'agriculture, de la pêche, de la sylviculture',
-      '09': 'Produits pétroliers, combustibles, électricité',
-      '15': 'Produits alimentaires, boissons, tabac',
-      '18': 'Vêtements, chaussures, bagages',
-      '22': 'Imprimés et produits connexes',
-      '24': 'Produits chimiques',
-      '30': 'Machines de bureau et matériel informatique',
-      '31': 'Appareils électriques',
-      '32': 'Appareils de radio, télévision, communication',
-      '33': 'Instruments médicaux, de précision, optiques',
-      '34': 'Matériel de transport',
-      '35': 'Équipements de sécurité, lutte incendie',
-      '37': 'Instruments de musique, articles de sport',
-      '38': 'Équipements de laboratoire',
-      '39': 'Mobilier, équipements d\'ameublement',
-      '41': 'Eaux captées et distribuées',
-      '42': 'Machines industrielles',
-      '43': 'Matériel d\'extraction minière',
-      '44': 'Structures et matériaux de construction',
-      '45': 'Travaux de construction',
-      '48': 'Progiciels et systèmes d\'information',
-      '50': 'Services de réparation et d\'entretien',
-      '51': 'Services d\'installation',
-      '55': 'Services d\'hôtellerie et de restauration',
-      '60': 'Services de transport',
-      '63': 'Services de soutien et auxiliaires des transports',
-      '64': 'Services postaux et de télécommunication',
-      '65': 'Services publics',
-      '66': 'Services financiers et d\'assurance',
-      '70': 'Services immobiliers',
-      '71': 'Services d\'architecture, construction, ingénierie',
-      '72': 'Services informatiques',
-      '73': 'Services de recherche et développement',
-      '75': 'Services d\'administration publique',
-      '76': 'Services relatifs à l\'industrie pétrolière',
-      '77': 'Services agricoles, forestiers, paysagers',
-      '79': 'Services aux entreprises',
-      '80': 'Services d\'éducation et de formation',
-      '85': 'Services sanitaires et sociaux',
-      '90': 'Services d\'assainissement et d\'enlèvement des ordures',
-      '92': 'Services récréatifs, culturels et sportifs',
-      '98': 'Autres services'
-    };
-    return categories[categorie] || `Catégorie CPV ${code}`;
+    const p = (procedure || '').toLowerCase();
+    if (!p || p === 'non renseigné') {
+      return 'Le type de procédure n\'a pas été publié pour ce marché.';
+    }
+    if (p.includes('sans publicité') || p.includes('négocié sans') || p.includes('sans mise en concurrence')) {
+      return 'Marché attribué sans publicité ni mise en concurrence préalable : c\'est autorisé sous certains seuils '
+        + '(40 000 € HT) ou dans des cas prévus par la loi (urgence, prestataire unique...).';
+    }
+    if (p.includes('adaptée') || p.includes('adaptee') || p.includes('mapa')) {
+      return 'Procédure simplifiée pour les marchés sous les seuils européens : l\'acheteur fixe lui-même '
+        + 'les modalités de publicité et de mise en concurrence, adaptées au montant.';
+    }
+    if (p.includes('appel d\'offres ouvert')) {
+      return 'Procédure formelle où toute entreprise peut remettre une offre ; c\'est la plus ouverte à la concurrence.';
+    }
+    if (p.includes('appel d\'offres restreint')) {
+      return 'Procédure formelle où seules les entreprises sélectionnées après une première étape peuvent remettre une offre.';
+    }
+    if (p.includes('négociation') || p.includes('négocié') || p.includes('negocie')) {
+      return 'Procédure où l\'acheteur négocie les conditions du marché avec une ou plusieurs entreprises, '
+        + 'après une publicité, dans les cas prévus par le code de la commande publique.';
+    }
+    if (p.includes('dialogue compétitif')) {
+      return 'Procédure pour les projets complexes : l\'acheteur dialogue avec les candidats pour définir la solution '
+        + 'avant de leur demander une offre finale.';
+    }
+    if (p.includes('concours')) {
+      return 'Procédure qui sélectionne un projet (souvent d\'architecture) sur avis d\'un jury, avant d\'attribuer le marché.';
+    }
+    return 'Mode de mise en concurrence utilisé par l\'acheteur pour attribuer ce marché public.';
   }
 
   getAlerteMessage(alerte: Alerte): string {
@@ -159,16 +135,5 @@ export class MarcheDetailComponent implements OnInit {
     return getAlerteTypeLabel(type);
   }
 
-  getAlerteClass(type: string): string {
-    switch (type) {
-      case 'CONCENTRATION_ELEVEE':
-        return 'alerte-warning';
-      case 'MONTANT_ATYPIQUE':
-        return 'alerte-info';
-      case 'SEUIL_SUSPECT':
-        return 'alerte-danger';
-      default:
-        return '';
-    }
-  }
+
 }

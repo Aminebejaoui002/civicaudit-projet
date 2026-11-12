@@ -2,10 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { LoginRequest, RegisterRequest, AuthResponse, User } from '../models/auth.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private baseUrl = 'http://localhost:8080/api/auth';
+  private baseUrl = `${environment.apiUrl}/auth`;
   private currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromStorage());
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -44,6 +45,22 @@ export class AuthService {
   hasRole(role: string): boolean {
     const user = this.getCurrentUser();
     return user?.role === role;
+  }
+
+  /** Accès au panneau de modération : rôles MODERATEUR et ADMIN (CDC 3.4). */
+  estModerateur(user: User | null = this.getCurrentUser()): boolean {
+    return user?.role === 'MODERATEUR' || user?.role === 'ADMIN';
+  }
+
+  estAdmin(user: User | null = this.getCurrentUser()): boolean {
+    return user?.role === 'ADMIN';
+  }
+
+  /** Droit à l'effacement (RGPD, CDC 3.6) : le compte est anonymisé côté serveur puis la session est fermée. */
+  supprimerCompte(): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/compte`).pipe(
+      tap(() => this.logout())
+    );
   }
 
   private handleAuthResponse(response: AuthResponse): void {

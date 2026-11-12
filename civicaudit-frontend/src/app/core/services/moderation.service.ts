@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { CommentaireModeration, SignalementModeration } from '../models/moderation.model';
+import { SignalementStatut } from '../models/signalement.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -17,20 +18,19 @@ export class ModerationService {
   }
 
   approuverCommentaire(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/commentaires/${id}/approuver`, {});
+    return this.http.patch<void>(`${this.apiUrl}/commentaires/${id}`, { statut: 'APPROUVE' });
   }
 
   rejeterCommentaire(id: number): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/commentaires/${id}/rejeter`, {});
+    return this.http.patch<void>(`${this.apiUrl}/commentaires/${id}`, { statut: 'REJETE' });
   }
 
   getSignalements(): Observable<SignalementModeration[]> {
     return this.http.get<SignalementModeration[]>(`${this.apiUrl}/signalements`);
   }
 
-  changerStatutSignalement(id: number, statut: string): Observable<void> {
-    return this.http.post<void>(`${this.apiUrl}/signalements/${id}/statut`, null, {
-      params: { statut }
-    });
+  /** PATCH /api/signalements/{id}/statut (CDC 5.4, rôle MODERATEUR). */
+  changerStatutSignalement(id: number, statut: SignalementStatut): Observable<void> {
+    return this.http.patch<void>(`${environment.apiUrl}/signalements/${id}/statut`, { statut });
   }
 }

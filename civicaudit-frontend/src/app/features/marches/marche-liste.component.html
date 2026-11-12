@@ -5,65 +5,82 @@
         <p class="eyebrow">Six-Fours-les-Plages · Marchés publics</p>
         <h1>Où va l'argent public</h1>
         <p class="subtitle">
-          Consultez les {{ resultat?.totalElements ?? '...' }} marchés publics attribués par la commune depuis 2018.
+          {{ resultat?.totalElements ?? '...' }} marché(s) public(s) correspondant à votre recherche,
+          issus des données officielles de la commande publique (DECP).
         </p>
       </div>
       <div class="header-actions">
         <a routerLink="/statistiques" class="btn-stats">
-          <span class="icon">📊</span>
+          <span class="icon" aria-hidden="true">📊</span>
           <span class="text">Statistiques</span>
         </a>
-        <button class="btn-export" (click)="exporterCSV()" [disabled]="exportEnCours">
-          <span class="icon">📥</span>
-          <span class="text" *ngIf="!exportEnCours">Exporter CSV</span>
-          <span class="text" *ngIf="exportEnCours">Export...</span>
+        <button type="button" class="btn-export" (click)="exporterCSV()" [disabled]="exportEnCours"
+                title="Exporte les marchés correspondant aux filtres actifs">
+          <span class="icon" aria-hidden="true">📥</span>
+          <span class="text">{{ exportEnCours ? 'Export...' : 'Exporter CSV' }}</span>
         </button>
       </div>
     </div>
+    <p *ngIf="erreurExport" class="export-erreur" role="alert">{{ erreurExport }}</p>
   </header>
 
-  <!-- Barre de recherche améliorée -->
+  <!-- Recherche et filtres (Reactive Forms) -->
   <div class="search-section">
-    <form class="search-form" (ngSubmit)="rechercher()">
+    <form class="search-form" [formGroup]="filtresForm" (ngSubmit)="rechercher()">
       <div class="search-bar">
-        <span class="search-icon">🔍</span>
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <label for="recherche-texte" class="sr-only">Rechercher par objet ou par entreprise</label>
         <input
+          id="recherche-texte"
           type="text"
           class="search-input"
-          placeholder="Rechercher par objet, entreprise, procédure..."
-          [(ngModel)]="filtres.texte"
-          name="texte" />
-        <button type="button" class="btn-filters" (click)="toggleFilters()">
-          <span class="icon">⚙️</span>
-          Filtres {{ showFilters ? '▲' : '▼' }}
+          placeholder="Rechercher par objet du marché ou nom d'entreprise..."
+          formControlName="texte" />
+        <button type="button" class="btn-filters" (click)="toggleFilters()" [attr.aria-expanded]="showFilters">
+          Filtres{{ nombreFiltresActifs ? ' (' + nombreFiltresActifs + ')' : '' }} {{ showFilters ? '▲' : '▼' }}
         </button>
         <button type="submit" class="btn-search">Rechercher</button>
       </div>
 
-      <!-- Filtres avancés -->
       <div class="filters-advanced" *ngIf="showFilters">
         <div class="filters-grid">
           <div class="filter-group">
-            <label>📅 Date de début</label>
-            <input type="date" [(ngModel)]="filtres.dateDebut" name="dateDebut" />
+            <label for="f-date-debut">Notifié à partir du</label>
+            <input id="f-date-debut" type="date" formControlName="dateDebut" />
           </div>
           <div class="filter-group">
-            <label>📅 Date de fin</label>
-            <input type="date" [(ngModel)]="filtres.dateFin" name="dateFin" />
+            <label for="f-date-fin">Notifié jusqu'au</label>
+            <input id="f-date-fin" type="date" formControlName="dateFin" />
           </div>
           <div class="filter-group">
-            <label>💰 Montant min (€)</label>
-            <input type="number" [(ngModel)]="filtres.montantMin" name="montantMin" placeholder="0" />
+            <label for="f-montant-min">Montant min (€)</label>
+            <input id="f-montant-min" type="number" min="0" formControlName="montantMin" placeholder="0" />
           </div>
           <div class="filter-group">
-            <label>💰 Montant max (€)</label>
-            <input type="number" [(ngModel)]="filtres.montantMax" name="montantMax" placeholder="Illimité" />
+            <label for="f-montant-max">Montant max (€)</label>
+            <input id="f-montant-max" type="number" min="0" formControlName="montantMax" placeholder="Illimité" />
           </div>
           <div class="filter-group">
-            <label>🔄 Trier par</label>
-            <select [(ngModel)]="filtres.tri" name="tri">
+            <label for="f-cpv">Catégorie</label>
+            <select id="f-cpv" formControlName="categorieCpv">
+              <option value="">Toutes les catégories</option>
+              <option *ngFor="let c of categoriesCpv" [value]="c.code">{{ c.code }} – {{ c.libelle }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="f-procedure">Type de procédure</label>
+            <select id="f-procedure" formControlName="procedure">
+              <option value="">Toutes les procédures</option>
+              <option *ngFor="let p of procedures" [value]="p">{{ p }}</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="f-tri">Trier par</label>
+            <select id="f-tri" formControlName="tri">
               <option value="date">Date (récent → ancien)</option>
+              <option value="date_asc">Date (ancien → récent)</option>
               <option value="montant">Montant (élevé → bas)</option>
+              <option value="montant_asc">Montant (bas → élevé)</option>
             </select>
           </div>
         </div>
@@ -79,39 +96,57 @@
     <div class="loader"></div>
     <p>Chargement des marchés...</p>
   </div>
-  
-  <div *ngIf="erreur" class="etat-erreur">
+
+  <div *ngIf="erreur" class="etat-erreur" role="alert">
     ⚠️ Impossible de charger les marchés. Vérifiez que le serveur backend est bien lancé.
   </div>
 
-  <!-- Liste des marchés en cards responsives -->
   <div class="marches-container" *ngIf="resultat && !chargement">
-    <div class="marches-list">
-      <div *ngFor="let marche of resultat.content" class="marche-card" [routerLink]="['/marches', marche.id]">
-        <div class="card-header">
-          <h3 class="card-title">{{ marche.objet }}</h3>
-          <span class="card-montant">{{ formatMontant(marche.montant) }}</span>
-        </div>
-        <div class="card-body">
-          <div class="card-info">
-            <span class="info-item">
-              <span class="info-icon">🏢</span>
-              <span class="info-text">{{ marche.titulairePrincipal }}</span>
-            </span>
-            <span class="info-item">
-              <span class="info-icon">📅</span>
-              <span class="info-text">{{ formatDate(marche.dateNotification) }}</span>
-            </span>
-          </div>
-          <span class="badge-procedure">{{ marche.procedure }}</span>
-        </div>
-      </div>
+    <div *ngIf="resultat.content.length === 0" class="etat-info">
+      Aucun marché ne correspond à ces critères.
+    </div>
+
+    <div class="table-wrapper" *ngIf="resultat.content.length > 0">
+      <table class="marches-table">
+        <caption class="sr-only">Liste des marchés publics</caption>
+        <thead>
+          <tr>
+            <th scope="col">Objet</th>
+            <th scope="col" class="col-montant">
+              <button type="button" class="th-tri" (click)="trierPar('montant')">
+                Montant {{ indicateurTri('montant') }}
+              </button>
+            </th>
+            <th scope="col">Titulaire principal</th>
+            <th scope="col" class="col-date">
+              <button type="button" class="th-tri" (click)="trierPar('date')">
+                Notification {{ indicateurTri('date') }}
+              </button>
+            </th>
+            <th scope="col">Procédure</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let marche of resultat.content" (click)="ouvrir(marche)" class="ligne-marche">
+            <td class="col-objet">
+              <a [routerLink]="['/marches', marche.id]" [title]="marche.objet" (click)="$event.stopPropagation()">
+                {{ objetTronque(marche.objet) }}
+              </a>
+              <span class="categorie">{{ marche.categorieCpvLibelle }}</span>
+            </td>
+            <td class="col-montant">{{ formatMontant(marche.montant) }}</td>
+            <td>{{ marche.titulairePrincipal }}</td>
+            <td class="col-date">{{ formatDate(marche.dateNotification) }}</td>
+            <td><span class="badge-procedure">{{ marche.procedure }}</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <div class="pagination" *ngIf="resultat && resultat.totalPages > 1">
-    <button (click)="changerPage(resultat.number - 1)" [disabled]="resultat.number === 0">← Précédent</button>
+  <nav class="pagination" *ngIf="resultat && resultat.totalPages > 1" aria-label="Pagination">
+    <button type="button" (click)="changerPage(resultat.number - 1)" [disabled]="resultat.number === 0">← Précédent</button>
     <span>Page {{ resultat.number + 1 }} sur {{ resultat.totalPages }}</span>
-    <button (click)="changerPage(resultat.number + 1)" [disabled]="resultat.number >= resultat.totalPages - 1">Suivant →</button>
-  </div>
+    <button type="button" (click)="changerPage(resultat.number + 1)" [disabled]="resultat.number >= resultat.totalPages - 1">Suivant →</button>
+  </nav>
 </div>

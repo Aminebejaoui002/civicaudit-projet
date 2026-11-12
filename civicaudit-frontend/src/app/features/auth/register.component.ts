@@ -50,15 +50,16 @@ export class RegisterComponent {
     this.chargement = true;
     this.erreur = '';
 
-    const { email, password } = this.registerForm.value;
-    this.authService.register({ email, password }).subscribe({
+    const { email, password, acceptCgu } = this.registerForm.value;
+    this.authService.register({ email, password, consentementRgpd: acceptCgu === true }).subscribe({
       next: () => {
         this.chargement = false;
         this.router.navigate(['/marches']);
       },
       error: (err) => {
         this.chargement = false;
-        this.erreur = err.error?.message || 'Une erreur est survenue lors de l\'inscription';
+        const erreurs = err.error?.errors ? Object.values(err.error.errors).join(' ') : '';
+        this.erreur = erreurs || err.error?.message || 'Une erreur est survenue lors de l\'inscription';
         this.cdr.detectChanges();
       }
     });

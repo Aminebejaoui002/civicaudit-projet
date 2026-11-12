@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { StatistiquesService } from '../../core/services/statistiques.service';
@@ -14,7 +14,7 @@ Chart.register(...registerables);
   templateUrl: './statistiques.component.html',
   styleUrl: './statistiques.component.scss'
 })
-export class StatistiquesComponent implements OnInit, AfterViewInit {
+export class StatistiquesComponent implements OnInit, AfterViewInit, OnDestroy {
   stats: Statistiques | null = null;
   chargement = true;
   erreur = false;
@@ -106,7 +106,7 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
     if (canvasFournisseurs && this.stats.topFournisseurs.length > 0) {
       const top10 = this.stats.topFournisseurs.slice(0, 10);
       const noms = top10.map(f => this.truncateText(f.nom, 30));
-      const montants = top10.map(f => f.montant);
+      const montants = top10.map(f => f.montantCumule);
       
       this.charts.push(new Chart(canvasFournisseurs, {
         type: 'bar',
@@ -146,9 +146,11 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
 
     // Graphique répartition procédures
     const canvasProcedures = document.getElementById('chartProcedures') as HTMLCanvasElement;
-    if (canvasProcedures && this.stats.repartitionProcedures) {
-      const procedures = Object.keys(this.stats.repartitionProcedures);
-      const valeurs = Object.values(this.stats.repartitionProcedures);
+    if (canvasProcedures && this.stats.repartitionParProcedure) {
+      // Tri décroissant pour une lecture plus facile (bar chart plutôt que camembert : > 4 catégories)
+      const entrees = Object.entries(this.stats.repartitionParProcedure).sort((a, b) => b[1] - a[1]);
+      const procedures = entrees.map(e => e[0]);
+      const valeurs = entrees.map(e => e[1]);
       
       this.charts.push(new Chart(canvasProcedures, {
         type: 'bar',
@@ -177,14 +179,15 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
 
     // Graphique répartition CPV
     const canvasCpv = document.getElementById('chartCpv') as HTMLCanvasElement;
-    if (canvasCpv && this.stats.repartitionCpv) {
-      const cpvs = Object.keys(this.stats.repartitionCpv);
-      const valeurs = Object.values(this.stats.repartitionCpv);
+    if (canvasCpv && this.stats.repartitionParCategorieCpv) {
+      const entrees = Object.entries(this.stats.repartitionParCategorieCpv).sort((a, b) => b[1] - a[1]);
+      const cpvs = entrees.map(e => e[0]);
+      const valeurs = entrees.map(e => e[1]);
       
       this.charts.push(new Chart(canvasCpv, {
         type: 'bar',
         data: {
-          labels: cpvs.map(c => this.truncateText(c, 30)),
+          labels: cpvs.map(c => this.truncateText(c, 40)),
           datasets: [{
             label: 'Nombre de marchés',
             data: valeurs,
@@ -226,6 +229,7 @@ export class StatistiquesComponent implements OnInit, AfterViewInit {
   }
 
   truncateText(text: string, maxLength: number): string {
+    if (!text) return '';
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength - 3) + '...';
   }

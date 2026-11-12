@@ -165,8 +165,8 @@
 
 .categorie-badge {
   padding: 0.25rem 0.625rem;
-  background: var(--primary-light);
-  color: var(--primary);
+  background: #eef2ff;
+  color: #3730a3;
   border-radius: 4px;
   font-size: 0.8125rem;
   font-weight: 500;
@@ -298,4 +298,39 @@
       margin-left: 0;
     }
   }
+}
+
+// --- Messages et libellés de formulaire ---
+.label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin: 0.5rem 0 0.375rem;
+}
+
+.message-succes,
+.message-erreur {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  margin: 0 0 1rem;
+  font-size: 0.9375rem;
+}
+
+.message-succes {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.message-erreur {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.champ-erreur {
+  display: block;
+  color: #b91c1c;
+  font-size: 0.8125rem;
+  margin-top: 0.25rem;
 }

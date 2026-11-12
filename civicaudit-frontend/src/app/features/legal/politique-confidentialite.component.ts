@@ -15,10 +15,10 @@ import { RouterLink } from '@angular/router';
         <section>
           <h2>1. Responsable du traitement</h2>
           <p>
-            Le responsable du traitement des données est la <strong>Commune de Six-Fours-les-Plages</strong>,
-            représentée par son Maire.
+            Le responsable du traitement des données est <strong>l'éditeur de la plateforme CivicAudit</strong>
+            (voir les mentions légales). CivicAudit est un projet indépendant de la commune de Six-Fours-les-Plages.
           </p>
-          <p><strong>Délégué à la Protection des Données (DPO)</strong> : dpo@civicaudit.fr</p>
+          <p><strong>Contact pour vos données personnelles</strong> : [adresse email de contact]</p>
         </section>
 
         <section>
@@ -61,7 +61,7 @@ import { RouterLink } from '@angular/router';
           </p>
           <ul>
             <li><strong>Votre consentement</strong> lors de la création du compte</li>
-            <li><strong>L'intérêt légitime</strong> de la commune à assurer la transparence des marchés publics</li>
+            <li><strong>L'intérêt légitime</strong> de l'éditeur à favoriser la transparence des marchés publics</li>
             <li><strong>L'obligation légale</strong> de publier les données essentielles (DECP)</li>
           </ul>
         </section>
@@ -79,7 +79,7 @@ import { RouterLink } from '@angular/router';
           <h2>6. Destinataires des données</h2>
           <p>Vos données sont accessibles uniquement par :</p>
           <ul>
-            <li>Les <strong>modérateurs</strong> de la plateforme (agents habilités de la commune)</li>
+            <li>Les <strong>modérateurs</strong> de la plateforme (personnes habilitées par l'éditeur de la plateforme)</li>
             <li>Les <strong>services techniques</strong> pour la maintenance</li>
             <li>L'<strong>hébergeur</strong> du site (sous contrat de confidentialité)</li>
           </ul>
@@ -121,7 +121,7 @@ import { RouterLink } from '@angular/router';
 
           <p class="exercise-rights">
             <strong>Pour exercer ces droits</strong>, contactez-nous à :
-            <a href="mailto:dpo@civicaudit.fr">dpo@civicaudit.fr</a>
+            [adresse email de contact]
             <br>
             Réponse sous 1 mois maximum.
           </p>

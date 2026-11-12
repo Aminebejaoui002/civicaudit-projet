@@ -19,6 +19,8 @@
     </button>
   </div>
 
+  <p *ngIf="erreur" class="erreur" role="alert">{{ erreur }}</p>
+
   <div class="content" *ngIf="!chargement">
     <!-- Onglet Commentaires -->
     <div *ngIf="ongletActif === 'commentaires'" class="commentaires-list">
@@ -30,6 +32,7 @@
         <div class="card-header">
           <div class="author-info">
             <strong>{{ commentaire.auteurNom }}</strong>
+            <span class="email">{{ commentaire.auteurEmail }}</span>
             <span class="date">{{ commentaire.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
           </div>
           <a [routerLink]="['/marches', commentaire.marcheId]" class="marche-link">
@@ -43,10 +46,10 @@
         </div>
 
         <div class="card-actions">
-          <button class="btn-approve" (click)="approuverCommentaire(commentaire.id)">
+          <button type="button" class="btn-approve" (click)="approuverCommentaire(commentaire.id)">
             ✓ Approuver
           </button>
-          <button class="btn-reject" (click)="rejeterCommentaire(commentaire.id)">
+          <button type="button" class="btn-reject" (click)="rejeterCommentaire(commentaire.id)">
             ✕ Rejeter
           </button>
         </div>
@@ -65,7 +68,7 @@
             <strong>{{ signalement.auteurNom }}</strong>
             <span class="date">{{ signalement.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
             <span class="badge" [ngClass]="getStatutBadgeClass(signalement.statut)">
-              {{ getStatutLabel(signalement.statut) }}
+              {{ statutsLabels[signalement.statut] }}
             </span>
           </div>
           <a [routerLink]="['/marches', signalement.marcheId]" class="marche-link">
@@ -75,20 +78,19 @@
 
         <div class="card-body">
           <p class="marche-objet">{{ signalement.marcheObjet }}</p>
-          <p class="categorie"><strong>Catégorie:</strong> {{ signalement.categorie }}</p>
+          <p class="categorie"><strong>Catégorie :</strong> {{ categoriesLabels[signalement.categorie] }}</p>
           <p class="description">{{ signalement.description }}</p>
-          <p class="votes">👍 {{ signalement.nbVotes }} vote(s)</p>
+          <p class="votes">👍 {{ signalement.nombreVotes }} confirmation(s)</p>
         </div>
 
         <div class="card-actions">
-          <select 
-            class="statut-select" 
+          <label class="sr-only" [attr.for]="'statut-' + signalement.id">Statut du signalement</label>
+          <select
+            [id]="'statut-' + signalement.id"
+            class="statut-select"
             [value]="signalement.statut"
             (change)="changerStatutSignalement(signalement.id, $any($event.target).value)">
-            <option value="EN_ATTENTE">En attente</option>
-            <option value="EN_DISCUSSION">En discussion</option>
-            <option value="RESOLU">Résolu</option>
-            <option value="REJETE">Rejeté</option>
+            <option *ngFor="let s of statuts" [value]="s" [selected]="s === signalement.statut">{{ statutsLabels[s] }}</option>
           </select>
         </div>
       </div>

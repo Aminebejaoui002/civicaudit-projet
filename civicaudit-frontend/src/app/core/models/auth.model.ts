@@ -6,6 +6,7 @@ export interface LoginRequest {
 export interface RegisterRequest {
   email: string;
   password: string;
+  consentementRgpd: boolean; // consentement RGPD explicite (case non pré-cochée)
 }
 
 export interface AuthResponse {

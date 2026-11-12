@@ -5,7 +5,8 @@
       <h2>💬 Commentaires ({{ commentaires.length }})</h2>
       <button 
         *ngIf="(authService.currentUser$ | async) && !afficherFormulaireCommentaire"
-        (click)="afficherFormulaireCommentaire = true"
+        type="button"
+        (click)="ouvrirCommentaire()"
         class="btn-primary">
         Ajouter un commentaire
       </button>
@@ -18,30 +19,36 @@
       </a>
     </div>
 
-    <!-- Formulaire nouveau commentaire -->
-    <div *ngIf="afficherFormulaireCommentaire" class="formulaire">
+    <p *ngIf="messageCommentaire" class="message-succes" role="status">{{ messageCommentaire }}</p>
+    <p *ngIf="erreurCommentaire" class="message-erreur" role="alert">{{ erreurCommentaire }}</p>
+
+    <!-- Formulaire nouveau commentaire (Reactive Form) -->
+    <form *ngIf="afficherFormulaireCommentaire" class="formulaire" [formGroup]="commentaireForm" (ngSubmit)="ajouterCommentaire()">
+      <label for="nouveau-commentaire" class="label">Votre commentaire</label>
       <textarea
-        [(ngModel)]="nouveauCommentaire"
+        id="nouveau-commentaire"
+        formControlName="contenu"
         placeholder="Votre commentaire constructif (minimum 10 caractères)..."
         maxlength="1000"
         rows="4"
         class="textarea"></textarea>
-      <div class="char-counter" [class.warning]="nouveauCommentaire.length < 10">
-        {{ nouveauCommentaire.length }} / 1000 caractères
-        <span *ngIf="nouveauCommentaire.length < 10" class="min-text">(min. 10)</span>
+      <div class="char-counter" [class.warning]="contenuCommentaire.length < 10">
+        {{ contenuCommentaire.length }} / 1000 caractères
+        <span *ngIf="contenuCommentaire.length < 10" class="min-text">(min. 10)</span>
       </div>
       <div class="formulaire-actions">
-        <button (click)="ajouterCommentaire()" class="btn-primary" [disabled]="nouveauCommentaire.trim().length < 10">
+        <button type="submit" class="btn-primary" [disabled]="commentaireForm.invalid">
           Publier
         </button>
-        <button (click)="afficherFormulaireCommentaire = false; nouveauCommentaire = ''" class="btn-secondary">
+        <button type="button" (click)="annulerCommentaire()" class="btn-secondary">
           Annuler
         </button>
       </div>
       <p class="note">
-        ℹ️ Votre commentaire sera modéré avant publication. Soyez constructif et respectueux.
+        ℹ️ Votre commentaire sera modéré avant publication. Restez factuel : pas d'accusation non sourcée,
+        pas de mise en cause nominative d'une personne (voir la <a routerLink="/cgus">charte d'usage</a>).
       </p>
-    </div>
+    </form>
 
     <!-- Liste des commentaires -->
     <div class="liste">
@@ -51,16 +58,17 @@
 
       <div *ngFor="let commentaire of commentaires" class="item commentaire-item">
         <div class="item-header">
-          <span class="auteur">{{ commentaire.auteurEmail }}</span>
+          <span class="auteur">{{ commentaire.auteurNom }}</span>
           <span class="date">{{ formatDate(commentaire.dateCreation) }}</span>
-          <span class="badge" [ngClass]="getStatutClass(commentaire.statut)">
-            {{ commentaire.statut === 'EN_ATTENTE' ? 'En modération' : 
-               commentaire.statut === 'APPROUVE' ? 'Approuvé' : 'Rejeté' }}
+          <span *ngIf="commentaire.estAuteur" class="badge" [ngClass]="getStatutClass(commentaire.statut)">
+            {{ commentaire.statut === 'EN_ATTENTE' ? 'En cours de modération' :
+               commentaire.statut === 'APPROUVE' ? 'Publié' : 'Non publié' }}
           </span>
         </div>
         <p class="contenu">{{ commentaire.contenu }}</p>
-        <button 
+        <button
           *ngIf="commentaire.estAuteur"
+          type="button"
           (click)="supprimerCommentaire(commentaire.id)"
           class="btn-supprimer">
           🗑️ Supprimer
@@ -75,9 +83,10 @@
       <h2>⚠️ Signalements ({{ signalements.length }})</h2>
       <button 
         *ngIf="(authService.currentUser$ | async) && !afficherFormulaireSignalement"
-        (click)="afficherFormulaireSignalement = true"
+        type="button"
+        (click)="ouvrirSignalement()"
         class="btn-primary">
-        Signaler une anomalie
+        Signaler un point à examiner
       </button>
       <a 
         *ngIf="!(authService.currentUser$ | async)"
@@ -88,45 +97,49 @@
       </a>
     </div>
 
-    <!-- Formulaire nouveau signalement -->
-    <div *ngIf="afficherFormulaireSignalement" class="formulaire">
-      <select
-        [(ngModel)]="nouveauSignalement.categorie"
-        class="select">
+    <p *ngIf="messageSignalement" class="message-succes" role="status">{{ messageSignalement }}</p>
+    <p *ngIf="erreurSignalement" class="message-erreur" role="alert">{{ erreurSignalement }}</p>
+
+    <!-- Formulaire nouveau signalement (Reactive Form) -->
+    <form *ngIf="afficherFormulaireSignalement" class="formulaire" [formGroup]="signalementForm" (ngSubmit)="ajouterSignalement()">
+      <label for="categorie-signalement" class="label">Catégorie</label>
+      <select id="categorie-signalement" formControlName="categorie" class="select">
+        <option value="" disabled>Choisissez une catégorie</option>
         <option *ngFor="let cat of categories" [value]="cat">
           {{ categoriesLabels[cat] }}
         </option>
       </select>
-      
+      <span class="champ-erreur" *ngIf="signalementForm.get('categorie')?.touched && signalementForm.get('categorie')?.invalid">
+        La catégorie est obligatoire.
+      </span>
+
+      <label for="description-signalement" class="label">Description</label>
       <textarea
-        [(ngModel)]="nouveauSignalement.description"
-        placeholder="Décrivez l'anomalie observée (minimum 20 caractères)..."
+        id="description-signalement"
+        formControlName="description"
+        placeholder="Décrivez factuellement ce qui vous semble inhabituel (minimum 20 caractères)..."
         maxlength="1000"
         rows="4"
         class="textarea"></textarea>
-      
-      <div class="char-counter" [class.warning]="nouveauSignalement.description.length < 20">
-        {{ nouveauSignalement.description.length }} / 1000 caractères
-        <span *ngIf="nouveauSignalement.description.length < 20" class="min-text">(min. 20)</span>
+
+      <div class="char-counter" [class.warning]="descriptionSignalement.length < 20">
+        {{ descriptionSignalement.length }} / 1000 caractères
+        <span *ngIf="descriptionSignalement.length < 20" class="min-text">(min. 20)</span>
       </div>
-      
+
       <div class="formulaire-actions">
-        <button 
-          (click)="ajouterSignalement()" 
-          class="btn-primary"
-          [disabled]="nouveauSignalement.description.trim().length < 20">
-          Signaler
+        <button type="submit" class="btn-primary" [disabled]="signalementForm.invalid">
+          Envoyer le signalement
         </button>
-        <button 
-          (click)="afficherFormulaireSignalement = false; nouveauSignalement.description = ''" 
-          class="btn-secondary">
+        <button type="button" (click)="annulerSignalement()" class="btn-secondary">
           Annuler
         </button>
       </div>
       <p class="note">
-        ℹ️ Vous ne pouvez signaler un marché qu'une seule fois par catégorie. Soyez précis et factuel.
+        ℹ️ Un signalement par catégorie et par marché. Les signalements sont des observations citoyennes,
+        pas des constats établis.
       </p>
-    </div>
+    </form>
 
     <!-- Liste des signalements -->
     <div class="liste">
@@ -143,11 +156,12 @@
         </div>
         <p class="contenu">{{ signalement.description }}</p>
         <div class="item-footer">
-          <span class="auteur">Par {{ signalement.auteurEmail }}</span>
+          <span class="auteur">Par {{ signalement.auteurNom }}</span>
           <span class="date">{{ formatDate(signalement.dateCreation) }}</span>
           <div class="votes">
-            <button 
+            <button
               *ngIf="(authService.currentUser$ | async) && !signalement.aVote"
+              type="button"
               (click)="voterSignalement(signalement.id)"
               class="btn-vote">
               👍 Je confirme ({{ signalement.nombreVotes }})

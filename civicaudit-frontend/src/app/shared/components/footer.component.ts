@@ -19,7 +19,6 @@ import { RouterLink } from '@angular/router';
           <ul>
             <li><a routerLink="/marches">Marchés publics</a></li>
             <li><a routerLink="/statistiques">Statistiques</a></li>
-            <li><a routerLink="/moderation">Modération</a></li>
           </ul>
         </div>
 
@@ -35,16 +34,16 @@ import { RouterLink } from '@angular/router';
         <div class="footer-section">
           <h4>Contact</h4>
           <ul>
-            <li><a href="mailto:contact@civicaudit.fr">contact@civicaudit.fr</a></li>
-            <li><a href="mailto:dpo@civicaudit.fr">DPO : dpo@civicaudit.fr</a></li>
+            <li><a routerLink="/mentions-legales">Éditeur et contact</a></li>
+            <li><a routerLink="/mon-compte">Mon compte / suppression</a></li>
           </ul>
         </div>
       </div>
 
       <div class="footer-bottom">
-        <p>© 2026 Commune de Six-Fours-les-Plages - Tous droits réservés</p>
+        <p>© 2026 CivicAudit — projet indépendant, non affilié à la commune de Six-Fours-les-Plages</p>
         <p class="data-source">
-          Données issues des <a href="https://data.gouv.fr" target="_blank" rel="noopener">DECP (data.gouv.fr)</a>
+          Données issues des <a href="https://www.data.gouv.fr/datasets/donnees-essentielles-de-la-commande-publique-consolidees-format-tabulaire" target="_blank" rel="noopener">DECP (data.gouv.fr)</a>
           sous <a href="https://www.etalab.gouv.fr/licence-ouverte-open-licence/" target="_blank" rel="noopener">Licence Ouverte 2.0</a>
         </p>
       </div>

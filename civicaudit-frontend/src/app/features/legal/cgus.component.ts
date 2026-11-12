@@ -172,7 +172,7 @@ import { RouterLink } from '@angular/router';
         <section>
           <h2>11. Contact</h2>
           <p>
-            Pour toute question concernant les CGU, contactez-nous à : <strong>contact@civicaudit.fr</strong>
+            Pour toute question concernant les CGU, contactez l'éditeur (voir les <a routerLink="/mentions-legales">mentions légales</a>)
           </p>
         </section>
 

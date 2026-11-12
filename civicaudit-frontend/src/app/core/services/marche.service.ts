@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { MarcheListe, MarcheDetail, Avenant, PageResult } from '../models/marche.model';
+import { MarcheListe, MarcheDetail, Avenant, PageResult, ValeursFiltres } from '../models/marche.model';
+import { environment } from '../../../environments/environment';
 
 export interface MarcheFiltres {
   page?: number;
@@ -9,8 +10,8 @@ export interface MarcheFiltres {
   tri?: string;
   dateDebut?: string;
   dateFin?: string;
-  montantMin?: number;
-  montantMax?: number;
+  montantMin?: number | null;
+  montantMax?: number | null;
   categorieCpv?: string;
   texte?: string;
   procedure?: string;
@@ -18,18 +19,12 @@ export interface MarcheFiltres {
 
 @Injectable({ providedIn: 'root' })
 export class MarcheService {
-  private baseUrl = 'http://localhost:8080/api/marches';
+  private baseUrl = `${environment.apiUrl}/marches`;
 
   constructor(private http: HttpClient) {}
 
   lister(filtres: MarcheFiltres): Observable<PageResult<MarcheListe>> {
-    let params = new HttpParams();
-    Object.entries(filtres).forEach(([cle, valeur]) => {
-      if (valeur !== undefined && valeur !== null && valeur !== '') {
-        params = params.set(cle, valeur.toString());
-      }
-    });
-    return this.http.get<PageResult<MarcheListe>>(this.baseUrl, { params });
+    return this.http.get<PageResult<MarcheListe>>(this.baseUrl, { params: this.versParams(filtres) });
   }
 
   getDetail(id: number): Observable<MarcheDetail> {
@@ -40,9 +35,27 @@ export class MarcheService {
     return this.http.get<Avenant[]>(`${this.baseUrl}/${id}/avenants`);
   }
 
-  exporterCSV(): Observable<string> {
-    return this.http.get(`${this.baseUrl}/export`, { 
-      responseType: 'text'
+  /** Catégories CPV et procédures présentes dans les données (listes déroulantes de filtres). */
+  getValeursFiltres(): Observable<ValeursFiltres> {
+    return this.http.get<ValeursFiltres>(`${this.baseUrl}/filtres`);
+  }
+
+  /** Export CSV des lignes correspondant exactement aux filtres actifs (CDC 3.7). */
+  exporterCSV(filtres: MarcheFiltres): Observable<Blob> {
+    const { page, taille, ...sansPagination } = filtres;
+    return this.http.get(`${this.baseUrl}/export`, {
+      params: this.versParams(sansPagination),
+      responseType: 'blob'
     });
+  }
+
+  private versParams(filtres: MarcheFiltres): HttpParams {
+    let params = new HttpParams();
+    Object.entries(filtres).forEach(([cle, valeur]) => {
+      if (valeur !== undefined && valeur !== null && valeur !== '') {
+        params = params.set(cle, String(valeur).trim());
+      }
+    });
+    return params;
   }
 }

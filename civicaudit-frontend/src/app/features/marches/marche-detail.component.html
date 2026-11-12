@@ -14,20 +14,26 @@
       <h1>{{ marche.objet }}</h1>
     </div>
 
-    <!-- Alertes automatiques -->
-    <div *ngIf="marche.alertes && marche.alertes.length > 0" class="alertes-section">
-      <h2>⚠️ Alertes automatiques</h2>
+    <!-- Points à examiner (alertes automatiques, CDC 3.5) : badges orange, wording neutre -->
+    <section *ngIf="marche.alertes && marche.alertes.length > 0" class="alertes-section" aria-labelledby="titre-alertes">
+      <h2 id="titre-alertes">Points à examiner</h2>
+      <p class="alertes-avertissement">{{ avertissementAlertes }}</p>
       <div class="alertes-liste">
-        <div *ngFor="let alerte of marche.alertes" class="alerte-card" [ngClass]="getAlerteClass(alerte.type)">
-          <div class="alerte-icon">⚠️</div>
+        <div *ngFor="let alerte of marche.alertes" class="alerte-card alerte-warning">
+          <div class="alerte-icon" aria-hidden="true">⚠</div>
           <div class="alerte-content">
             <h3>{{ getAlerteTypeLabel(alerte.type) }}</h3>
             <p>{{ getAlerteMessage(alerte) }}</p>
-            <span class="alerte-date">Générée le {{ formatDate(alerte.dateGeneration) }}</span>
+            <span class="alerte-date">Indicateur calculé le {{ formatDate(alerte.dateGeneration) }}</span>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <p class="compteurs">
+      <a href="#participation">💬 {{ marche.nombreCommentaires }} commentaire(s) publié(s)
+        · ⚠ {{ marche.nombreSignalements }} signalement(s)</a>
+    </p>
 
     <!-- Informations principales -->
     <div class="detail-grid">
@@ -94,7 +100,9 @@
       <div class="detail-card">
         <h2>⚖️ Procédure</h2>
         <p class="procedure-type">
-          <span class="badge-procedure">{{ marche.procedure }}</span>
+          <span class="badge-procedure" [title]="getProcedureExplication(marche.procedure)" tabindex="0">
+            {{ marche.procedure }} ⓘ
+          </span>
         </p>
         <p class="procedure-explication">
           {{ getProcedureExplication(marche.procedure) }}
@@ -104,7 +112,7 @@
       <!-- Bloc Catégorie -->
       <div class="detail-card">
         <h2>📦 Catégorie</h2>
-        <p class="cpv-libelle">{{ getCpvLibelle(marche.cpvCode) }}</p>
+        <p class="cpv-libelle">{{ marche.categorieCpvLibelle }}</p>
         <p class="cpv-code">Code CPV : {{ marche.cpvCode }}</p>
       </div>
 
@@ -116,15 +124,17 @@
           publiées en open data conformément à la réglementation.
         </p>
         <p class="source-fichier">
-          <strong>Fichier source :</strong> {{ marche.sourceFilename }}
+          Source : DECP, data.gouv.fr — fichier {{ marche.sourceFilename }}
         </p>
-        <a href="https://data.gouv.fr" target="_blank" rel="noopener noreferrer" class="btn-secondary">
-          Consulter les données sur data.gouv.fr ↗
+        <a [href]="marche.sourceUrl" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+          Consulter le jeu de données source ↗
         </a>
       </div>
     </div>
 
     <!-- Section commentaires et signalements -->
-    <app-marche-interactions [marcheId]="marche.id"></app-marche-interactions>
+    <div id="participation">
+      <app-marche-interactions [marcheId]="marche.id"></app-marche-interactions>
+    </div>
   </div>
 </div>

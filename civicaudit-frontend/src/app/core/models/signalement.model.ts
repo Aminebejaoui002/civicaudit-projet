@@ -3,7 +3,7 @@ export interface Signalement {
   categorie: SignalementCategorie;
   description: string;
   statut: SignalementStatut;
-  auteurEmail: string;
+  auteurNom: string; // pseudonyme public, ou « Utilisateur supprimé »
   auteurId: number;
   dateCreation: string;
   nombreVotes: number;
